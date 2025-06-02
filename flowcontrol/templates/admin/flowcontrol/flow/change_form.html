@@ -1,0 +1,10 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_modify %}
+{% block object-tools-items %}
+    {% if has_add_permission %}
+        <li>
+            <a href="{% url 'admin:flowcontrol-flow-list_actions' object_id=original.id %}">{% translate "Edit actions" %}</a>
+        </li>
+    {% endif %}
+    {{ block.super }}
+{% endblock object-tools-items %}

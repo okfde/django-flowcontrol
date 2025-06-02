@@ -1,0 +1,6 @@
+django-treebeard
+python-dateutil
+coverage[toml]
+django>=4.2
+pytest
+pytest-django
