@@ -20,6 +20,17 @@ def trigger_flows(
     state: Optional[dict] = None,
     immediate: bool = False,
 ) -> list[FlowRun]:
+    """Triggers flows based on the given trigger name.
+
+    Args:
+        trigger_name (str): trigger name to look up in the database.
+        obj (Optional[models.Model], optional): object associated with the flow run. Defaults to None.
+        state (Optional[dict], optional): Default state of the flow run. Defaults to None.
+        immediate (bool, optional): Execute immediately if True. Defaults to False.
+
+    Returns:
+        A list of FlowRun instances that were created as a result of the trigger.
+    """
     active_triggers = Trigger.objects.get_active_for_trigger_name(trigger_name)
     runs = []
     for trigger in active_triggers:
@@ -44,13 +55,19 @@ def create_flow_run(
     state: Optional[dict] = None,
     parent_run: Optional[FlowRun] = None,
     trigger: Optional[Trigger] = None,
-) -> FlowRun:
+) -> Optional[FlowRun]:
     """
-    Starts a flow run for the given flow and content object.
+    Creates a new flow run from flow when limits allow it.
 
-    :param flow: The Flow instance to start.
-    :param obj: The object related to the flow run.
-    :return: The created FlowRun instance.
+    Args:
+        flow (Flow): The Flow instance to start.
+        obj (Optional[models.Model]): The object related to the flow run.
+        state (Optional[dict]): Optional initial state for the flow run.
+        parent_run (Optional[FlowRun]): Optional parent FlowRun instance if this run is a child of another.
+        trigger (Optional[Trigger]): The trigger that initiated this flow run.
+
+    Returns:
+        The created FlowRun instance, or None if the run was not created.
     """
 
     if not flow.is_active():
@@ -107,13 +124,16 @@ def start_flow_run(
     parent_run: Optional[FlowRun] = None,
 ) -> Optional[FlowRun]:
     """
-    Starts a flow run and executes it.
+    Creates a flow run (flow limits allowing) and executes it immediately.
 
-    :param flow: The Flow instance to start.
-    :param obj: The object related to the flow run.
-    :param state: Optional initial state for the flow run.
-    :param parent_run: Optional parent FlowRun instance if this run is a child of another.
-    :return: The updated FlowRun instance after execution.
+    Args:
+        flow (Flow): The Flow instance to start.
+        obj (Optional[models.Model]): The object related to the flow run.
+        state (Optional[dict]): Optional initial state for the flow run.
+        parent_run (Optional[FlowRun]): Optional parent FlowRun instance if this run is a child of another.
+
+    Returns:
+        The created FlowRun instance, or None if the run was not created.
     """
 
     flow_run = create_flow_run(flow, obj=obj, state=state, parent_run=parent_run)
@@ -175,8 +195,12 @@ def execute_flow_run(run, max_hot_loop: int = MAX_HOT_LOOPS) -> Optional[FlowRun
     """
     Executes the flow run, processing its actions.
 
-    :param flow_run: The FlowRun instance to execute.
-    :return: The updated FlowRun instance.
+    Args:
+        run (FlowRun): The FlowRun instance to execute.
+        max_hot_loop (int): Maximum number of times an action can be executed in a loop before aborting.
+
+    Returns:
+        The updated FlowRun instance or None if the run was not executed due to its status.
     """
 
     if run.status not in (FlowRun.Status.PENDING, FlowRun.Status.WAITING):

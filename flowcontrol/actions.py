@@ -17,7 +17,7 @@ class ConditionBase(BaseAction):
     has_children = True
     group = _("Control flow")
 
-    def run(self, *, obj, run, config) -> FlowDirective:
+    def run(self, *, run, obj, config) -> FlowDirective:
         if config and config.check_condition(self.get_context()):
             return FlowDirective.ENTER
         return FlowDirective.CONTINUE
@@ -28,7 +28,7 @@ class IfAction(ConditionBase):
     verbose_name = _("If Condition")
     description = _("This action runs a block of actions if a condition is true.")
 
-    def return_from_children(self, *, obj, run, config=None) -> FlowDirective:
+    def return_from_children(self, *, run, obj, config=None) -> FlowDirective:
         return FlowDirective.CONTINUE
 
 
@@ -48,7 +48,7 @@ class DelayAction(BaseAction):
     group = _("Control flow")
     model = Delay
 
-    def run(self, *, obj, run, config: Delay) -> FlowDirective:
+    def run(self, *, run, obj, config: Delay) -> FlowDirective:
         now = timezone.now()
         run.continue_after = config.calculate_delay(self.get_context())
         if run.continue_after < now:
@@ -63,7 +63,7 @@ class StartFlowAction(BaseAction):
     group = _("Control flow")
     model = StartFlow
 
-    def run(self, *, obj, run, config: StartFlow) -> FlowDirective:
+    def run(self, *, run, obj, config: StartFlow) -> FlowDirective:
         from .engine import create_flow_run
 
         state = None
@@ -95,7 +95,7 @@ class SetStateAction(BaseAction):
     group = _("State manipulation")
     model = State
 
-    def run(self, *, obj, run, config=None) -> FlowDirective:
+    def run(self, *, run, obj, config=None) -> FlowDirective:
         context = self.get_context()
         state = config.get_resulting_object(context)
         # Add internal state variables that start with "_"
@@ -111,7 +111,7 @@ class UpdateStateAction(BaseAction):
     group = _("State manipulation")
     model = State
 
-    def run(self, *, obj, run, config) -> FlowDirective:
+    def run(self, *, run, obj, config) -> FlowDirective:
         context = self.get_context()
 
         state = config.get_resulting_object(context)
@@ -132,7 +132,7 @@ class ForLoopAction(BaseAction):
             return config.var_name
         return f"_for_loop_{config.id}"
 
-    def run(self, *, obj, run, config: ForLoop) -> FlowDirective:
+    def run(self, *, run, obj, config: ForLoop) -> FlowDirective:
         key = self._get_key(config)
         if key not in run.state:
             run.state[key] = config.start
@@ -142,7 +142,7 @@ class ForLoopAction(BaseAction):
             return FlowDirective.CONTINUE
         return FlowDirective.ENTER
 
-    def return_from_children(self, *, obj, run, config: ForLoop) -> FlowDirective:
+    def return_from_children(self, *, run, obj, config: ForLoop) -> FlowDirective:
         key = self._get_key(config)
         if key not in run.state:
             logger.warning("ForLoopAction: key %s not found in run state", key)
@@ -158,7 +158,7 @@ class ConditionalDirective(BaseAction):
     model = Condition
     true_directive: FlowDirective
 
-    def run(self, *, obj, run, config: Condition) -> FlowDirective:
+    def run(self, *, run, obj, config: Condition) -> FlowDirective:
         if config and config.condition:
             if config.check_condition(self.get_context()):
                 return self.true_directive
@@ -168,7 +168,7 @@ class ConditionalDirective(BaseAction):
 
 @register_action
 class LeaveAction(ConditionalDirective):
-    verbose_name = _("Return to parent node")
+    verbose_name = _("Return to parent action")
     description = _("This action returns control to the parent action.")
     group = _("Control flow")
 
@@ -190,5 +190,5 @@ class AbortAction(BaseAction):
     description = _("This action stops the flow.")
     group = _("Control flow")
 
-    def run(self, *, obj, run, config=None) -> FlowDirective:
+    def run(self, *, run, obj, config=None) -> FlowDirective:
         return FlowDirective.ABORT

@@ -30,7 +30,7 @@ class BaseAction:
     @classmethod
     def get_name(cls) -> str:
         """
-        Get the name of the action.
+        Get the name of the action, uses the class name by default.
         """
         if cls.name is None:
             return cls.__name__
@@ -43,6 +43,9 @@ class BaseAction:
         """
         Get the context for the action.
         This method can be overridden in subclasses to provide additional context.
+
+        Returns:
+            The context dictionary for the flow run.
         """
         return self.context
 
@@ -54,8 +57,17 @@ class BaseAction:
         config: Optional[Model] = None,
     ) -> Optional[FlowDirective]:
         """
-        Run the action on the given object.
+        Run the action and return a flow directive
         This method should be overridden in subclasses.
+
+        Args:
+            run (FlowRun): The FlowRun instance to execute.
+            obj (Optional[Model]): The model instance associated with the action.
+            config (Optional[Model]): The configuration model instance for the action.
+
+        Returns:
+            Optional[FlowDirective]: The flow directive indicating the next action to take.
+                                     FlowDirective.CONTINUE is used if None.
         """
         raise NotImplementedError("Subclasses must implement this method.")
 
@@ -67,8 +79,16 @@ class BaseAction:
         config: Optional[Model] = None,
     ) -> Optional[FlowDirective]:
         """
-        Run the action on the given object.
-        This method should be overridden in subclasses.
+        This is run when returning from child actions to a parent action.
+
+        Args:
+            run (FlowRun): The FlowRun instance to execute.
+            obj (Optional[Model]): The model instance associated with the action.
+            config (Optional[Model]): The configuration model instance for the action.
+
+        Returns:
+            Optional[FlowDirective]: The flow directive indicating the next action to take.
+                                     FlowDirective.CONTINUE is used if None.
         """
         if not self.has_children:
             return
