@@ -164,7 +164,14 @@ def complete_flowrun(run):
     run.save()
 
 
-def execute_flow_run(run, max_hot_loop: int = MAX_HOT_LOOPS) -> FlowRun:
+def continue_flowruns():
+    runnable = FlowRun.objects.get_runnable()
+
+    for runnable_run in runnable:
+        execute_flow_run(runnable_run)
+
+
+def execute_flow_run(run, max_hot_loop: int = MAX_HOT_LOOPS) -> Optional[FlowRun]:
     """
     Executes the flow run, processing its actions.
 

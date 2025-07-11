@@ -2,11 +2,7 @@ from celery import shared_task
 
 
 @shared_task
-def continue_flowruns():
-    from .engine import execute_flow_run
-    from .models import FlowRun
+def continue_flowruns_task():
+    from .engine import continue_flowruns
 
-    runnable = FlowRun.objects.get_runnable()
-
-    for runnable_run in runnable:
-        execute_flow_run(runnable_run)
+    continue_flowruns()
