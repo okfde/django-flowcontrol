@@ -40,14 +40,14 @@ The function to register a trigger returns a function that can be called to star
 
 ## Flow Control Engine
 
-### `flowcontrol.engine.create_flow_run`
+### `flowcontrol.engine.create_flowrun`
 
-::: flowcontrol.engine.create_flow_run
+::: flowcontrol.engine.create_flowrun
 
-### `flowcontrol.engine.start_flow_run`
+### `flowcontrol.engine.start_flowrun`
 
-::: flowcontrol.engine.start_flow_run
+::: flowcontrol.engine.start_flowrun
 
-### `flowcontrol.engine.execute_flow_run`
+### `flowcontrol.engine.execute_flowrun`
 
-::: flowcontrol.engine.execute_flow_run
+::: flowcontrol.engine.execute_flowrun

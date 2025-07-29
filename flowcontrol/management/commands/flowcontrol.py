@@ -2,7 +2,7 @@ from collections import Counter
 
 from django.core.management.base import BaseCommand, CommandParser
 
-from ...engine import execute_flow_run
+from ...engine import execute_flowrun
 from ...models import FlowRun
 
 
@@ -31,7 +31,7 @@ class Command(BaseCommand):
         self.stdout.write(f"Executing {count} runnable flow runs...\n")
 
         for runnable_run in runnable:
-            execute_flow_run(runnable_run)
+            execute_flowrun(runnable_run)
             status_counter[runnable_run.status] += 1
             if runnable_run.outcome:
                 outcome_counter[runnable_run.outcome] += 1

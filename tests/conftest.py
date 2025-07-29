@@ -17,6 +17,11 @@ def flow(db):
 
 
 @pytest.fixture
+def other_flow(db):
+    return Flow.objects.create(name="Other Flow", active_at=timezone.now())
+
+
+@pytest.fixture
 def user(db):
     return User.objects.create(username="testuser")
 
@@ -29,7 +34,7 @@ def trigger(flow):
 
 
 @pytest.fixture
-def flow_run(flow, user):
+def flowrun(flow, user):
     ct = ContentType.objects.get_for_model(user)
     return FlowRun.objects.create(
         flow=flow,

@@ -35,7 +35,7 @@ def trigger_flows(
     runs = []
     for trigger in active_triggers:
         flow = trigger.flow
-        run = create_flow_run(flow, obj, state=state, trigger=trigger)
+        run = create_flowrun(flow, obj, state=state, trigger=trigger)
         if run is None:
             logger.warning(
                 f"Flow run for flow {flow.id} and object {obj} was not triggered due to limits."
@@ -45,11 +45,11 @@ def trigger_flows(
 
     if immediate:
         for run in runs:
-            execute_flow_run(run)
+            execute_flowrun(run)
     return runs
 
 
-def create_flow_run(
+def create_flowrun(
     flow: Flow,
     obj: Optional[models.Model] = None,
     state: Optional[dict] = None,
@@ -117,7 +117,7 @@ def create_flow_run(
     return run
 
 
-def start_flow_run(
+def start_flowrun(
     flow: Flow,
     obj: Optional[models.Model] = None,
     state: Optional[dict] = None,
@@ -136,15 +136,15 @@ def start_flow_run(
         The created FlowRun instance, or None if the run was not created.
     """
 
-    flow_run = create_flow_run(flow, obj=obj, state=state, parent_run=parent_run)
-    if flow_run is None:
+    flowrun = create_flowrun(flow, obj=obj, state=state, parent_run=parent_run)
+    if flowrun is None:
         logger.warning(
             f"Flow run for flow {flow.id} and object {obj} was not created due to limits."
         )
         return None
 
-    execute_flow_run(flow_run)
-    return flow_run
+    execute_flowrun(flowrun)
+    return flowrun
 
 
 def cancel_flowrun(run: FlowRun):
@@ -179,14 +179,14 @@ def discard_flowrun(run: FlowRun):
     run.save()
 
 
-def abort_flowrun(run):
+def abort_flowrun(run: FlowRun):
     run.status = FlowRun.Status.DONE
     run.outcome = FlowRun.Outcome.ABORTED
     run.done_at = timezone.now()
     run.save()
 
 
-def error_flowrun(run, message=""):
+def error_flowrun(run: FlowRun, message=""):
     run.status = FlowRun.Status.DONE
     run.outcome = FlowRun.Outcome.ERRORED
     run.done_at = timezone.now()
@@ -194,7 +194,7 @@ def error_flowrun(run, message=""):
     run.save()
 
 
-def suspend_flowrun(run):
+def suspend_flowrun(run: FlowRun):
     if run.continue_after is None:
         run.continue_after = timezone.now()
 
@@ -202,7 +202,7 @@ def suspend_flowrun(run):
     run.save()
 
 
-def complete_flowrun(run):
+def complete_flowrun(run: FlowRun):
     run.status = FlowRun.Status.DONE
     run.outcome = FlowRun.Outcome.COMPLETE
     run.done_at = timezone.now()
@@ -213,10 +213,12 @@ def continue_flowruns():
     runnable = FlowRun.objects.get_runnable()
 
     for runnable_run in runnable:
-        execute_flow_run(runnable_run)
+        execute_flowrun(runnable_run)
 
 
-def execute_flow_run(run, max_hot_loop: int = MAX_HOT_LOOPS) -> Optional[FlowRun]:
+def execute_flowrun(
+    run: FlowRun, max_hot_loop: int = MAX_HOT_LOOPS
+) -> Optional[FlowRun]:
     """
     Executes the flow run, processing its actions.
 

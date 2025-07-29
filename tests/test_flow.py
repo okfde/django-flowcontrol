@@ -19,7 +19,7 @@ from flowcontrol.actions import (
     WhileLoopAction,
 )
 from flowcontrol.base import BaseAction, FlowDirective
-from flowcontrol.engine import create_flow_run, execute_flow_run, start_flow_run
+from flowcontrol.engine import create_flowrun, execute_flowrun, start_flowrun
 from flowcontrol.models import FlowRun
 from flowcontrol.models.core import Flow
 from flowcontrol.registry import action_registry, register_action
@@ -43,7 +43,7 @@ def test_forloop_flow(flow, user):
             ),
         ],
     )
-    run = start_flow_run(flow, obj=user)
+    run = start_flowrun(flow, obj=user)
     assert run is not None
     assert run.status == FlowRun.Status.DONE
     assert run.outcome == FlowRun.Outcome.COMPLETE
@@ -67,7 +67,7 @@ def test_whileloop_flow(flow, user):
             ),
         ],
     )
-    run = start_flow_run(flow, obj=user)
+    run = start_flowrun(flow, obj=user)
     assert run is not None
     assert run.status == FlowRun.Status.DONE
     assert run.outcome == FlowRun.Outcome.COMPLETE
@@ -91,9 +91,9 @@ def test_hot_loop_detection(flow, user):
             ),
         ],
     )
-    run = create_flow_run(flow, obj=user)
+    run = create_flowrun(flow, obj=user)
     max_hot_loop = 5
-    execute_flow_run(run, max_hot_loop=max_hot_loop)
+    execute_flowrun(run, max_hot_loop=max_hot_loop)
     assert run is not None
     assert run.status == FlowRun.Status.DONE
     assert run.outcome == FlowRun.Outcome.ERRORED
@@ -109,7 +109,7 @@ def test_run_with_no_object(flow):
             ActionNode(SetStateAction, {"state": {"i": 0}}),
         ],
     )
-    run = start_flow_run(flow)
+    run = start_flowrun(flow)
     assert run is not None
     assert run.status == FlowRun.Status.DONE
     assert run.outcome == FlowRun.Outcome.COMPLETE
@@ -125,10 +125,10 @@ def test_run_with_object_gone_missing(flow):
         ],
     )
     user = User.objects.create(username="testuser")
-    run = create_flow_run(flow, obj=user)
+    run = create_flowrun(flow, obj=user)
     user.delete()
 
-    execute_flow_run(run)
+    execute_flowrun(run)
 
     assert run is not None
     assert run.status == FlowRun.Status.DONE
@@ -155,7 +155,7 @@ def test_if_action(flow):
             ),
         ],
     )
-    run = start_flow_run(flow, obj=None)
+    run = start_flowrun(flow, obj=None)
     assert run is not None
     assert run.status == FlowRun.Status.DONE
     assert run.outcome == FlowRun.Outcome.COMPLETE
@@ -182,7 +182,7 @@ def test_bad_if_action(flow):
             ),
         ],
     )
-    run = start_flow_run(flow, obj=None)
+    run = start_flowrun(flow, obj=None)
     assert run is not None
     assert run.status == FlowRun.Status.DONE
     assert run.outcome == FlowRun.Outcome.ERRORED
@@ -208,7 +208,7 @@ def test_leave_action(flow):
             ),
         ],
     )
-    run = start_flow_run(flow, obj=None)
+    run = start_flowrun(flow, obj=None)
     assert run is not None
     assert run.status == FlowRun.Status.DONE
     assert run.outcome == FlowRun.Outcome.COMPLETE
@@ -235,7 +235,7 @@ def test_break_action(flow, break_condition):
             ),
         ],
     )
-    run = start_flow_run(flow, obj=None)
+    run = start_flowrun(flow, obj=None)
     assert run is not None
     assert run.status == FlowRun.Status.DONE
     assert run.outcome == FlowRun.Outcome.COMPLETE
@@ -261,7 +261,7 @@ def test_break_action_false(flow):
             ),
         ],
     )
-    run = start_flow_run(flow, obj=None)
+    run = start_flowrun(flow, obj=None)
     assert run is not None
     assert run.status == FlowRun.Status.DONE
     assert run.outcome == FlowRun.Outcome.COMPLETE
@@ -287,7 +287,7 @@ def test_stop_action(flow):
             ),
         ],
     )
-    run = start_flow_run(flow, obj=None)
+    run = start_flowrun(flow, obj=None)
     assert run is not None
     assert run.status == FlowRun.Status.DONE
     assert run.outcome == FlowRun.Outcome.ABORTED
@@ -309,7 +309,7 @@ def test_enter_with_no_children(flow):
             ),
         ],
     )
-    run = start_flow_run(flow, obj=None)
+    run = start_flowrun(flow, obj=None)
     assert run is not None
     assert run.status == FlowRun.Status.DONE
     assert run.outcome == FlowRun.Outcome.COMPLETE
@@ -339,7 +339,7 @@ def test_start_flow_action_immediate(flow):
             ),
         ],
     )
-    run = start_flow_run(flow)
+    run = start_flowrun(flow)
     assert run is not None
     assert run.status == FlowRun.Status.DONE
     assert run.outcome == FlowRun.Outcome.COMPLETE
@@ -377,7 +377,7 @@ def test_start_flow_action_limit(flow):
             ),
         ],
     )
-    run = start_flow_run(flow)
+    run = start_flowrun(flow)
     assert run is not None
     assert run.status == FlowRun.Status.DONE
     assert run.outcome == FlowRun.Outcome.COMPLETE
@@ -388,7 +388,7 @@ def test_start_flow_action_limit(flow):
 
 
 @pytest.mark.django_db
-def test_flow_run_suspend_resume(flow):
+def test_flowrun_suspend_resume(flow):
     make_action_tree(
         flow,
         [
@@ -399,13 +399,13 @@ def test_flow_run_suspend_resume(flow):
             ),
         ],
     )
-    run = start_flow_run(flow)
+    run = start_flowrun(flow)
     assert run is not None
     assert run.status == FlowRun.Status.WAITING
     assert run.outcome == ""
     assert run.state["i"] == 0
 
-    execute_flow_run(run)
+    execute_flowrun(run)
     assert run.status == FlowRun.Status.DONE
     assert run.outcome == FlowRun.Outcome.COMPLETE
     assert run.state["i"] == 1
@@ -431,7 +431,7 @@ def test_nested_break(flow):
             ),
         ],
     )
-    run = start_flow_run(flow)
+    run = start_flowrun(flow)
     assert run is not None
     assert run.status == FlowRun.Status.DONE
     assert run.outcome == FlowRun.Outcome.COMPLETE
@@ -443,7 +443,7 @@ def test_inactive_flow(flow):
     with pytest.raises(
         ValueError, match="Cannot start a flow run for an inactive flow"
     ):
-        create_flow_run(flow)
+        create_flowrun(flow)
 
 
 @pytest.mark.django_db
@@ -461,38 +461,38 @@ def test_active_flow_manager_method():
 def test_flow_limit_max_concurrent(flow):
     flow.max_concurrent = 1
 
-    run = create_flow_run(flow)
+    run = create_flowrun(flow)
     assert run is not None
 
-    run = create_flow_run(flow)
+    run = create_flowrun(flow)
     assert run is None
 
 
 def test_flow_limit_max_per_object(flow, user):
     flow.max_per_object = 1
 
-    run = start_flow_run(flow, obj=user)
+    run = start_flowrun(flow, obj=user)
     assert run is not None
     assert run.status == FlowRun.Status.DONE
     assert run.outcome == FlowRun.Outcome.COMPLETE
 
-    run = start_flow_run(flow, obj=user)
+    run = start_flowrun(flow, obj=user)
     assert run is None
 
 
 def test_flow_limit_max_concurrent_per_object(flow, user):
     flow.max_concurrent_per_object = 1
 
-    run = start_flow_run(flow, obj=user)
+    run = start_flowrun(flow, obj=user)
     assert run is not None
     assert run.status == FlowRun.Status.DONE
     assert run.outcome == FlowRun.Outcome.COMPLETE
 
-    run = create_flow_run(flow, obj=user)
+    run = create_flowrun(flow, obj=user)
     assert run is not None
     assert run.status == FlowRun.Status.PENDING
 
-    run = create_flow_run(flow, obj=user)
+    run = create_flowrun(flow, obj=user)
     assert run is None
 
 
@@ -509,7 +509,7 @@ def test_suspend_no_continue_timestamp(flow):
             ActionNode(BadSuspend),
         ],
     )
-    run = start_flow_run(flow)
+    run = start_flowrun(flow)
     assert run is not None
     run.refresh_from_db()
     assert run.status == FlowRun.Status.WAITING
@@ -530,7 +530,7 @@ def test_action_exception(flow):
             ActionNode(BadAction),
         ],
     )
-    run = start_flow_run(flow)
+    run = start_flowrun(flow)
     assert run is not None
     run.refresh_from_db()
     assert run.status == FlowRun.Status.DONE
@@ -538,7 +538,7 @@ def test_action_exception(flow):
     assert "KeyError" in run.log
     run.done_at = None
     run.status = FlowRun.Status.PENDING
-    execute_flow_run(run)
+    execute_flowrun(run)
 
 
 @pytest.mark.django_db
@@ -554,7 +554,7 @@ def test_action_return_none(flow):
             ActionNode(NoneAction),
         ],
     )
-    run = start_flow_run(flow)
+    run = start_flowrun(flow)
     assert run is not None
     run.refresh_from_db()
     assert run.status == FlowRun.Status.DONE
@@ -574,7 +574,7 @@ def test_action_bad_directive(flow):
             ActionNode(BadDirectiveAction),
         ],
     )
-    run = start_flow_run(flow)
+    run = start_flowrun(flow)
     assert run is not None
     run.refresh_from_db()
     assert run.status == FlowRun.Status.DONE
@@ -598,7 +598,7 @@ def test_missing_action(flow, temp_registry):
     # Remove from registry
     action_registry.actions = {}
 
-    run = start_flow_run(flow)
+    run = start_flowrun(flow)
     assert run is not None
     run.refresh_from_db()
     assert run.status == FlowRun.Status.DONE
@@ -607,41 +607,41 @@ def test_missing_action(flow, temp_registry):
     assert "Action ActionGonMissing is missing or not found" in run.log
 
 
-def test_execute_done_flow(caplog, flow_run):
-    flow_run.status = FlowRun.Status.DONE
+def test_execute_done_flow(caplog, flowrun):
+    flowrun.status = FlowRun.Status.DONE
     with caplog.at_level(logging.WARNING):
-        execute_flow_run(flow_run)
-    assert f"Flow run {flow_run.id} is not in a valid state to execute" in caplog.text
+        execute_flowrun(flowrun)
+    assert f"Flow run {flowrun.id} is not in a valid state to execute" in caplog.text
 
 
-def test_execute_flow_waiting_no_continue_after(flow_run):
-    flow_run.status = FlowRun.Status.WAITING
-    flow_run.continue_after = None
+def test_execute_flow_waiting_no_continue_after(flowrun):
+    flowrun.status = FlowRun.Status.WAITING
+    flowrun.continue_after = None
     with pytest.raises(
         ValueError, match="Flow run is waiting but has no continue_after time set"
     ):
-        execute_flow_run(flow_run)
+        execute_flowrun(flowrun)
 
 
-def test_execute_flow_waiting_no_action(flow_run):
-    flow_run.status = FlowRun.Status.WAITING
-    flow_run.continue_after = timezone.now()
-    flow_run.action = None
+def test_execute_flow_waiting_no_action(flowrun):
+    flowrun.status = FlowRun.Status.WAITING
+    flowrun.continue_after = timezone.now()
+    flowrun.action = None
     with pytest.raises(ValueError, match="Flow run is waiting but has no action set"):
-        execute_flow_run(flow_run)
+        execute_flowrun(flowrun)
 
 
-def test_execute_flow_waiting_too_early(flow_run, flow_action):
-    flow_run.status = FlowRun.Status.WAITING
-    flow_run.continue_after = timezone.now() + timedelta(hours=5)
-    flow_run.action = flow_action
+def test_execute_flow_waiting_too_early(flowrun, flow_action):
+    flowrun.status = FlowRun.Status.WAITING
+    flowrun.continue_after = timezone.now() + timedelta(hours=5)
+    flowrun.action = flow_action
 
-    execute_flow_run(flow_run)
+    execute_flowrun(flowrun)
 
-    assert flow_run.status == FlowRun.Status.WAITING
+    assert flowrun.status == FlowRun.Status.WAITING
 
 
-def test_runnable_flow_runs(flow):
+def test_runnable_flowruns(flow):
     run1 = FlowRun.objects.create(
         flow=flow, status=FlowRun.Status.PENDING, continue_after=None
     )
@@ -678,23 +678,23 @@ def test_suspend_and_repeat(flow, temp_registry):
             ActionNode(SuspendAndRepeatAction),
         ],
     )
-    run = create_flow_run(flow)
+    run = create_flowrun(flow)
 
-    execute_flow_run(run)
+    execute_flowrun(run)
     assert run is not None
     assert run.status == FlowRun.Status.WAITING
     assert run.state["i"] == 1
     assert run.continue_after is not None
     assert run.repeat_action
 
-    execute_flow_run(run)
+    execute_flowrun(run)
     assert run is not None
     assert run.status == FlowRun.Status.WAITING
     assert run.state["i"] == 2
     assert run.continue_after is not None
     assert run.repeat_action
 
-    execute_flow_run(run)
+    execute_flowrun(run)
     assert run is not None
     assert run.status == FlowRun.Status.DONE
     assert run.outcome == FlowRun.Outcome.COMPLETE

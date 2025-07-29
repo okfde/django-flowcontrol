@@ -1,6 +1,6 @@
 import pytest
 
-from flowcontrol.engine import create_flow_run, trigger_flows
+from flowcontrol.engine import create_flowrun, trigger_flows
 
 
 @pytest.mark.django_db
@@ -17,7 +17,7 @@ def test_trigger_flowrun_limited(trigger):
     flow = trigger.flow
     flow.max_concurrent = 1
     flow.save()
-    run = create_flow_run(flow)
+    run = create_flowrun(flow)
     assert run is not None
 
     runs = trigger_flows(trigger.trigger)

@@ -1,16 +1,24 @@
 from django.contrib.admin.sites import AdminSite
+from django.core.exceptions import ValidationError
 from django.urls import reverse
+from django.utils import timezone
 
 import pytest
 
-from flowcontrol.actions import IfAction, SetStateAction, UpdateStateAction
+from flowcontrol.actions import (
+    IfAction,
+    SetStateAction,
+    UpdateStateAction,
+    WhileLoopAction,
+)
 from flowcontrol.admin import (
     FlowAdmin,
 )
+from flowcontrol.engine import create_flowrun
 from flowcontrol.models import Flow, FlowRun
 from flowcontrol.models.core import FlowAction
 from flowcontrol.registry import register_trigger
-from flowcontrol.utils import ActionNode, make_action_tree
+from flowcontrol.utils import ActionNode, duplicate_action, make_action_tree
 
 
 def test_flowadmin_custom_urls_registered(admin_user, rf):
@@ -243,7 +251,7 @@ def test_flowadmin_flow_move_action(admin_user, client, flow):
     assert root_nodes[0].action == "IfAction"
 
 
-def test_flowrunadmin(admin_user, client, flow_run):
+def test_flowrunadmin(admin_user, client, flowrun):
     client.force_login(admin_user)
     resp = client.get(reverse("admin:flowcontrol_flowrun_changelist"))
     assert resp.status_code == 200
@@ -255,29 +263,29 @@ def test_flowrunadmin_add(admin_user, client):
     assert resp.status_code == 200
 
 
-def test_flowrunadmin_change(admin_user, client, flow_run):
+def test_flowrunadmin_change(admin_user, client, flowrun):
     client.force_login(admin_user)
-    resp = client.get(reverse("admin:flowcontrol_flowrun_change", args=(flow_run.id,)))
+    resp = client.get(reverse("admin:flowcontrol_flowrun_change", args=(flowrun.id,)))
     assert resp.status_code == 200
 
 
-def test_flowrunadmin_execute_flow_run_calls_execute(admin_user, client, flow_run):
+def test_flowrunadmin_execute_flowrun_calls_execute(admin_user, client, flowrun):
     client.force_login(admin_user)
 
-    assert flow_run.status == FlowRun.Status.PENDING
-    assert flow_run.outcome == ""
-    assert flow_run.done_at is None
+    assert flowrun.status == FlowRun.Status.PENDING
+    assert flowrun.outcome == ""
+    assert flowrun.done_at is None
 
     response = client.post(
         reverse("admin:flowcontrol_flowrun_changelist"),
-        data={"action": "execute_flow_run", "_selected_action": [flow_run.id]},
+        data={"action": "execute_flowrun", "_selected_action": [flowrun.id]},
     )
     assert response.status_code == 302
 
-    flow_run.refresh_from_db()
-    assert flow_run.status == FlowRun.Status.DONE
-    assert flow_run.outcome == FlowRun.Outcome.COMPLETE
-    assert flow_run.done_at is not None
+    flowrun.refresh_from_db()
+    assert flowrun.status == FlowRun.Status.DONE
+    assert flowrun.outcome == FlowRun.Outcome.COMPLETE
+    assert flowrun.done_at is not None
 
 
 def test_triggeradmin(admin_user, client, trigger):
@@ -313,3 +321,114 @@ def test_triggeradmin_change(admin_user, client, trigger):
     client.force_login(admin_user)
     resp = client.get(reverse("admin:flowcontrol_trigger_change", args=(trigger.id,)))
     assert resp.status_code == 200
+
+
+def test_activate_flows(admin_user, client, flow):
+    client.force_login(admin_user)
+    flow.active_at = None
+    flow.save()
+    resp = client.post(
+        reverse("admin:flowcontrol_flow_changelist"),
+        data={
+            "action": "activate_flows",
+            "_selected_action": [flow.id],
+        },
+    )
+    assert resp.status_code == 302
+    flow.refresh_from_db()
+    assert flow.active_at is not None
+
+
+def test_deactivate_flows(admin_user, client, flow):
+    client.force_login(admin_user)
+    flow.active_at = timezone.now()
+    flow.save()
+    resp = client.post(
+        reverse("admin:flowcontrol_flow_changelist"),
+        data={
+            "action": "deactivate_flows",
+            "_selected_action": [flow.id],
+        },
+    )
+    assert resp.status_code == 302
+    flow.refresh_from_db()
+    assert flow.active_at is None
+
+
+def test_duplicate_flow(admin_user, client, flow_with_all_actions):
+    client.force_login(admin_user)
+    flow = flow_with_all_actions
+
+    resp = client.post(
+        reverse("admin:flowcontrol_flow_changelist"),
+        data={
+            "action": "duplicate_flow",
+            "_selected_action": [flow.id],
+        },
+    )
+    assert resp.status_code == 302
+
+    new_flow = Flow.objects.get(name=f"{flow.name} (copy)")
+    assert new_flow is not None
+    assert new_flow.actions.count() == flow.actions.count()
+    assert new_flow.actions.first().action == flow.actions.first().action
+
+
+def test_duplicate_action(admin_user, client, flow_with_all_actions):
+    client.force_login(admin_user)
+    flow = flow_with_all_actions
+    old_count = flow.actions.count()
+    action = flow.actions.first()
+
+    resp = client.post(
+        reverse("admin:flowcontrol-flow-list_actions", kwargs={"object_id": flow.id}),
+        data={
+            "action": "duplicate_action",
+            "_selected_action": [action.id],
+        },
+    )
+    assert resp.status_code == 302
+    new_count = flow.actions.count()
+    assert new_count == old_count + 1
+
+    new_action = action.get_last_sibling()
+    assert new_action is not None
+    assert new_action.action == action.action
+
+
+def test_duplicate_action_with_children(flow):
+    make_action_tree(
+        flow,
+        [
+            ActionNode(SetStateAction, {"state": {"i": 0}}),
+            ActionNode(
+                WhileLoopAction,
+                {"condition": "True"},
+                [
+                    ActionNode(
+                        UpdateStateAction, {"state": {"i": "i|add:1"}, "evaluate": True}
+                    ),
+                ],
+            ),
+        ],
+    )
+    action = flow.actions.all()[1]
+
+    duplicate_action(action.get_config(), target_parent=None)
+
+    new_action = action.get_last_sibling()
+    assert new_action is not None
+    assert new_action.action == action.action
+    assert new_action.get_children().count() == action.get_children().count()
+
+
+def test_flowrun_action_flow_identical(flow_with_all_actions, other_flow):
+    flowrun = create_flowrun(flow_with_all_actions)
+    flowrun.action = flow_with_all_actions.actions.first()
+    flowrun.save()
+
+    flowrun.full_clean()
+
+    flowrun.flow = other_flow
+    with pytest.raises(ValidationError):
+        flowrun.full_clean()

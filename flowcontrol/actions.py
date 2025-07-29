@@ -3,7 +3,7 @@ import logging
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from flowcontrol.engine import execute_flow_run
+from flowcontrol.engine import execute_flowrun
 
 from .base import BaseAction, FlowDirective
 from .models.config import Condition, Delay, ForLoop, StartFlow, State
@@ -64,7 +64,7 @@ class StartFlowAction(BaseAction):
     model = StartFlow
 
     def run(self, *, run, obj, config: StartFlow) -> FlowDirective:
-        from .engine import create_flow_run
+        from .engine import create_flowrun
 
         state = None
         if config.pass_state:
@@ -73,7 +73,7 @@ class StartFlowAction(BaseAction):
         if config.pass_object:
             pass_obj = obj
 
-        sub_run = create_flow_run(
+        sub_run = create_flowrun(
             flow=config.start_flow,
             obj=pass_obj,
             state=state,
@@ -83,7 +83,7 @@ class StartFlowAction(BaseAction):
             logger.warning("Failed to start sub run for %s", config.start_flow)
 
         if sub_run and config.immediate:
-            execute_flow_run(sub_run)
+            execute_flowrun(sub_run)
 
         return FlowDirective.CONTINUE
 
