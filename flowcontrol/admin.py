@@ -9,6 +9,7 @@ from django.db.models import Count, Q
 from django.forms.models import modelform_factory
 from django.shortcuts import redirect
 from django.urls import path, reverse
+from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -16,9 +17,10 @@ from django.utils.translation import gettext_lazy as _
 from treebeard.admin import TreeAdmin
 from treebeard.forms import movenodeform_factory
 
-from .engine import execute_flow_run
+from .engine import execute_flowrun
 from .models import Flow, FlowAction, FlowRun, Trigger
 from .registry import action_registry
+from .utils import duplicate_action
 
 
 @admin.register(Flow)
@@ -28,7 +30,10 @@ class FlowAdmin(admin.ModelAdmin):
         "edit_actions",
         "created_at",
         "updated_at",
+        "is_active",
+        "active_at",
     )
+    actions = ["duplicate_flow", "activate_flows", "deactivate_flows"]
 
     @admin.display(description=_("Actions"))
     def edit_actions(self, obj):
@@ -37,6 +42,26 @@ class FlowAdmin(admin.ModelAdmin):
             reverse("admin:flowcontrol-flow-list_actions", args=[obj.id]),
             _("Edit Actions"),
         )
+
+    @admin.display(description=_("Active"), boolean=True)
+    def is_active(self, obj):
+        return bool(obj.active_at)
+
+    @admin.action(description=_("Activate selected flows"))
+    def activate_flows(self, request, queryset):
+        """
+        Custom action to activate selected flows.
+        This sets the active_at field to the current time.
+        """
+        queryset.update(active_at=timezone.now())
+
+    @admin.action(description=_("Deactivate selected flows"))
+    def deactivate_flows(self, request, queryset):
+        """
+        Custom action to activate selected flows.
+        This sets the active_at field to the current time.
+        """
+        queryset.update(active_at=None)
 
     def get_urls(self):
         urls = super().get_urls()
@@ -73,6 +98,26 @@ class FlowAdmin(admin.ModelAdmin):
             ),
         ]
         return custom_urls + urls
+
+    @admin.action(description=_("Duplicate selected flows"))
+    def duplicate_flow(self, request, queryset):
+        """
+        Custom action to duplicate selected flows.
+        This creates a new Flow with the same name and description.
+        """
+        for flow in queryset:
+            new_flow = Flow.objects.create(
+                name=f"{flow.name} (copy)",
+                description=flow.description,
+                max_concurrent=flow.max_concurrent,
+                max_per_object=flow.max_per_object,
+                max_concurrent_per_object=flow.max_concurrent_per_object,
+            )
+            for action in flow.get_root_actions():
+                action_class = action.get_action_class()
+                if action_class and action_class.model:
+                    action = action.get_config()
+                duplicate_action(action, flow=new_flow)
 
     def redirect_to_flows(self, request):
         """
@@ -173,6 +218,7 @@ class FlowActionSubAdmin(TreeAdmin):
     exclude = ("path", "depth", "numchild")
 
     list_display = ("action_name", "description_label", "config", "run_count")
+    actions = ["duplicate_action"]
 
     def __init__(self, model, admin_site, flow):
         self.flow = flow
@@ -222,6 +268,21 @@ class FlowActionSubAdmin(TreeAdmin):
         if config is None:
             return obj
         return config
+
+    @admin.action(description=_("Duplicate selected actions"))
+    def duplicate_action(self, request, queryset):
+        """
+        Custom action to duplicate selected FlowActions.
+        This creates a new FlowAction with the same configuration.
+        """
+        for action in queryset:
+            action_class = action.get_action_class()
+            if action_class and action_class.model:
+                config = action.get_config()
+            else:
+                config = action
+
+            duplicate_action(config, target_parent=action.get_parent())
 
     def chosen_action_class(self, request):
         form = ChooseFlowActionForm(data=request.POST or request.GET)

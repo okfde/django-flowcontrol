@@ -81,3 +81,30 @@ def make_action_tree(flow, node_list: list[ActionNode], parent_action=None):
             action = parent_action.add_child(instance=action)
 
         make_action_tree(flow, children, action)
+
+
+def get_action_data(action):
+    return {
+        field.name: getattr(action, field.name)
+        for field in action.__class__._meta.fields
+        if field.name not in ("id", "path", "depth", "numchild", "flowaction_ptr")
+    }
+
+
+def duplicate_action(action, target_parent=None, flow=None):
+    """
+    Duplicate an action and return the new instance.
+    This is used to create a copy of an existing action.
+    """
+    if flow is None:
+        flow = action.flow
+
+    data = get_action_data(action)
+    data["flow"] = flow
+    if target_parent is None:
+        new_action = action.__class__.add_root(**data)
+    else:
+        new_action = target_parent.add_child(**data)
+    for child in action.get_children():
+        duplicate_action(child, target_parent=new_action, flow=flow)
+    return new_action

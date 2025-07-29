@@ -78,6 +78,12 @@ class Flow(models.Model):
     def is_active(self) -> bool:
         return self.active_at and self.active_at <= timezone.now()
 
+    def get_root_actions(self):
+        """
+        Returns all root actions of this flow.
+        """
+        return FlowAction.get_root_nodes().filter(flow=self)
+
 
 class FlowAction(MP_Node):
     flow = models.ForeignKey(
