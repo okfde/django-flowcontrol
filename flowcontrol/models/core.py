@@ -215,6 +215,7 @@ class Outcome(models.TextChoices):
     ABORTED = "aborted", _("Aborted")
     ERRORED = "errored", _("Errored")
     OBSOLETE = "obsolete", _("Obsolete")
+    CANCELED = "canceled", _("Canceled")
 
 
 class FlowRun(models.Model):

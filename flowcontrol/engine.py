@@ -147,7 +147,32 @@ def start_flow_run(
     return flow_run
 
 
-def discard_flowrun(run):
+def cancel_flowrun(run: FlowRun):
+    run.status = FlowRun.Status.DONE
+    run.outcome = FlowRun.Outcome.CANCELED
+    run.done_at = timezone.now()
+    run.save()
+
+
+def get_flowruns_for_object(obj: models.Model) -> models.QuerySet[FlowRun]:
+    ct = ContentType.objects.get_for_model(obj)
+    return FlowRun.objects.filter(
+        content_type=ct,
+        object_id=obj.pk,
+    )
+
+
+def cancel_flowruns_for_object(obj: models.Model):
+    get_flowruns_for_object(obj).filter(
+        status__in=(FlowRun.Status.PENDING, FlowRun.Status.WAITING),
+    ).update(
+        status=FlowRun.Status.DONE,
+        outcome=FlowRun.Outcome.CANCELED,
+        done_at=timezone.now(),
+    )
+
+
+def discard_flowrun(run: FlowRun):
     run.status = FlowRun.Status.DONE
     run.outcome = FlowRun.Outcome.OBSOLETE
     run.done_at = timezone.now()
