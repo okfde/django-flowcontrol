@@ -393,9 +393,10 @@ class FlowRunAdmin(admin.ModelAdmin):
         "done_at",
         "parent_run",
         "trigger",
+        "repeat_action",
     )
 
-    actions = ["execute_flow_run"]
+    actions = ["execute_flowrun"]
 
     @admin.display(description=_("Content Object"))
     def content_object(self, obj):
@@ -424,15 +425,13 @@ class FlowRunAdmin(admin.ModelAdmin):
         return super().get_form(request, obj, **kwargs)
 
     @admin.action(description=_("Execute selected flow runs"))
-    def execute_flow_run(self, request, queryset):
+    def execute_flowrun(self, request, queryset):
         """
         Custom action to execute selected flow runs.
         This is a placeholder for the actual execution logic.
         """
         for run in queryset:
-            run.done_at = None
-            run.status = FlowRun.Status.PENDING
-            execute_flow_run(run)
+            execute_flowrun(run)
 
 
 @admin.register(Trigger)
