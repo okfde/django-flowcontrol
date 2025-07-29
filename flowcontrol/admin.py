@@ -2,6 +2,7 @@ from collections import defaultdict
 
 from django import forms
 from django.contrib import admin
+from django.contrib.admin import widgets
 from django.core.exceptions import (
     PermissionDenied,
 )
@@ -289,15 +290,23 @@ class FlowActionSubAdmin(TreeAdmin):
         if form.is_valid():
             return form.get_action_class()
 
-    def get_adminform_for_model(self, request, model, action, obj):
+    def get_adminform_for_model(self, request, model, action_class, obj):
         if obj is None:
             form_class = movenodeform_factory(model)
         else:
             form_class = modelform_factory(model, exclude=("depth", "path", "numchild"))
         form_class.base_fields["flow"].initial = self.flow
         form_class.base_fields["flow"].widget = forms.HiddenInput()
-        form_class.base_fields["action"].initial = action
+        form_class.base_fields["action"].initial = action_class.get_name()
         form_class.base_fields["action"].widget = forms.HiddenInput()
+        for raw_id_field in action_class.raw_id_fields:
+            if raw_id_field in form_class.base_fields:
+                model_field = model._meta.get_field(raw_id_field)
+                form_class.base_fields[
+                    raw_id_field
+                ].widget = widgets.ForeignKeyRawIdWidget(
+                    model_field.remote_field, self.admin_site
+                )
         return form_class
 
     def get_form(self, request, obj=None, change=False, **kwargs):
@@ -308,7 +317,7 @@ class FlowActionSubAdmin(TreeAdmin):
         if action_class:
             # If we have a specific action class, return its admin form
             return self.get_adminform_for_model(
-                request, action_class.model or FlowAction, action_class.get_name(), obj
+                request, action_class.model or FlowAction, action_class, obj
             )
         form_class = type(ChooseFlowActionForm.__name__, (ChooseFlowActionForm,), {})
         form_class.base_fields["flow"].initial = self.flow

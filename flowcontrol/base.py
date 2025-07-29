@@ -24,6 +24,7 @@ class BaseAction:
     has_children: bool = False
     name: Optional[str] = None
     group: Optional[str] = None
+    raw_id_fields: tuple[str] = ()
 
     description = _("This is a base action class that should be extended.")
 
