@@ -61,6 +61,7 @@ from flowcontrol.registry import register_action
 
 from myapp.models import MyActionConfig
 
+@register_action
 class MyAction(BaseAction):
     name = "My Action"
     description = "This is my custom action."

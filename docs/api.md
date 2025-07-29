@@ -51,3 +51,11 @@ The function to register a trigger returns a function that can be called to star
 ### `flowcontrol.engine.execute_flowrun`
 
 ::: flowcontrol.engine.execute_flowrun
+
+### `flowcontrol.engine.cancel_flowrun`
+
+::: flowcontrol.engine.cancel_flowrun
+
+### `flowcontrol.engine.continue_flowruns`
+
+::: flowcontrol.engine.continue_flowruns

@@ -148,6 +148,12 @@ def start_flowrun(
 
 
 def cancel_flowrun(run: FlowRun):
+    """
+    Cancel given flowrun.
+
+    Args:
+        run (FlowRun): flowrun to cancel.
+    """
     run.status = FlowRun.Status.DONE
     run.outcome = FlowRun.Outcome.CANCELED
     run.done_at = timezone.now()
@@ -163,6 +169,12 @@ def get_flowruns_for_object(obj: models.Model) -> models.QuerySet[FlowRun]:
 
 
 def cancel_flowruns_for_object(obj: models.Model):
+    """
+    Cancel all pending or waiting flowruns for the given object.
+
+    Args:
+        obj (Model): find flowruns with this object and cancel them.
+    """
     get_flowruns_for_object(obj).filter(
         status__in=(FlowRun.Status.PENDING, FlowRun.Status.WAITING),
     ).update(
@@ -210,6 +222,9 @@ def complete_flowrun(run: FlowRun):
 
 
 def continue_flowruns():
+    """
+    Execute all flowruns that can be continued.
+    """
     runnable = FlowRun.objects.get_runnable()
 
     for runnable_run in runnable:
