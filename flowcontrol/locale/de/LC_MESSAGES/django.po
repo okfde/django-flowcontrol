@@ -1,0 +1,492 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-01-20 16:27+0100\n"
+"PO-Revision-Date: 2026-01-20 16:51+0100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.8\n"
+
+#: actions.py
+msgid "Control flow"
+msgstr "Kontrollfluss"
+
+#: actions.py
+msgid "If Condition"
+msgstr "Wenn-Bedingung"
+
+#: actions.py
+msgid "This action runs a block of actions if a condition is true."
+msgstr ""
+"Diese Aktion durchläuft ihre untergeordneten Aktionen, wenn eine "
+"Bedingung zutrifft."
+
+#: actions.py
+msgid "While Loop"
+msgstr "Bedingungs-Schleife"
+
+#: actions.py
+msgid "This action runs a block of actions while a condition is true."
+msgstr ""
+"Diese Aktion durchläuft ihre untergeordneten Aktionen, solange eine "
+"Bedingung zutrifft."
+
+#: actions.py
+msgid "Delay"
+msgstr "Pause"
+
+#: actions.py
+msgid "This action suspends the flow for some time."
+msgstr "Diese Aktion hält den Ablauf für einige Zeit an."
+
+#: actions.py
+msgid "Start new flow"
+msgstr "Neuen Ablauf starten"
+
+#: actions.py
+msgid "This action starts another flow."
+msgstr "Diese Aktion startet einen weiteren Ablauf."
+
+#: actions.py
+msgid "Set state"
+msgstr "Zustand festlegen"
+
+#: actions.py
+msgid "Replace run state."
+msgstr "Ersetze den Ablaufszustand."
+
+#: actions.py
+msgid "State manipulation"
+msgstr "Zustand verändern"
+
+#: actions.py
+msgid "Update state"
+msgstr "Zustand aktualisieren"
+
+#: actions.py
+msgid "Update run state."
+msgstr "Aktualisiere den Ablaufszustand."
+
+#: actions.py
+msgid "For Loop"
+msgstr "Zählschleife"
+
+#: actions.py
+msgid "Loop with a number of times."
+msgstr "Schleife Anzahl an Ausführungen."
+
+#: actions.py
+msgid "Return to parent action"
+msgstr "Zurück zur übergeordneten Aktion"
+
+#: actions.py
+msgid "This action returns control to the parent action."
+msgstr ""
+"Diese Aktion setzt die Ausführung mit der übergeordneten Aktion fort."
+
+#: actions.py
+msgid "Leave branch"
+msgstr "Abzweigung verlassen"
+
+#: actions.py
+msgid "This action moves control to the parent action's next sibling."
+msgstr ""
+"Diese Aktion führt den Ablauf mit der Aktion weiter, die nach der "
+"übergeordneten Aktion folgt."
+
+#: actions.py
+msgid "Stop Flow"
+msgstr "Ablauf stoppen"
+
+#: actions.py
+msgid "This action stops the flow."
+msgstr "Diese Aktion stoppt den Ablauf."
+
+#: admin.py
+msgid "Actions"
+msgstr "Aktionen"
+
+#: admin.py
+msgid "Edit Actions"
+msgstr "Aktionen bearbeiten"
+
+#: admin.py
+msgid "Active"
+msgstr "Aktiv"
+
+#: admin.py
+msgid "Activate selected flows"
+msgstr "Ausgewählte Abläufe aktivieren"
+
+#: admin.py
+msgid "Deactivate selected flows"
+msgstr "Ausgewählte Abläufe deaktivieren"
+
+#: admin.py
+msgid "Duplicate selected flows"
+msgstr "Ausgewählte Abläufe duplizieren"
+
+#: admin.py models/core.py
+msgid "Flow"
+msgstr "Ablauf"
+
+#: admin.py
+msgid "The flow to which the action will be added."
+msgstr "Der Ablauf, zu der die Aktion hinzugefügt wird."
+
+#: admin.py
+msgid "Action Type"
+msgstr "Aktionstyp"
+
+#: admin.py
+msgid "Select the type of action to add to the flow."
+msgstr ""
+"Wähle die Art der Aktion aus, die zum Ablauf hinzugefügt werden soll."
+
+#: admin.py models/core.py
+msgid "Action"
+msgstr "Aktion"
+
+#: admin.py models/core.py
+msgid "Description"
+msgstr "Beschreibung"
+
+#: admin.py
+msgid "Configuration"
+msgstr "Konfiguration"
+
+#: admin.py
+msgid "Runs waiting on this action"
+msgstr "Instanzen, die bei dieser Aktion warten"
+
+#: admin.py
+msgid "Duplicate selected actions"
+msgstr "Dupliziere die ausgewählten Aktionen"
+
+#: admin.py
+#, python-brace-format
+msgid "Choose action to add to flow '{flow}'"
+msgstr "Wähle Aktion, die zum Ablauf '{flow}' hinzugefügt werden soll"
+
+#: admin.py
+#, python-brace-format
+msgid "Add '{action}' action to flow '{flow}'"
+msgstr "Füge '{action}’-Aktion zum Ablauf '{flow}' hinzu"
+
+#: admin.py
+msgid "Content Object"
+msgstr "Inhalts-Objekt"
+
+#: admin.py
+msgid "Execute selected flow runs"
+msgstr "Führe ausgewählte Ablaufinstanzen aus"
+
+#: admin.py
+msgid "Trigger"
+msgstr "Auslöser"
+
+#: base.py
+msgid "Base Action"
+msgstr "Basis-Aktion"
+
+#: base.py
+msgid "This is a base action class that should be extended."
+msgstr "Dies ist die Basisklasse für Aktionen, die erweitert werden soll."
+
+#: models/config.py
+msgid "Monday"
+msgstr "Montag"
+
+#: models/config.py
+msgid "Tuesday"
+msgstr "Dienstag"
+
+#: models/config.py
+msgid "Wednesday"
+msgstr "Mittwoch"
+
+#: models/config.py
+msgid "Thursday"
+msgstr "Donnerstag"
+
+#: models/config.py
+msgid "Friday"
+msgstr "Freitag"
+
+#: models/config.py
+msgid "Saturday"
+msgstr "Samstag"
+
+#: models/config.py
+msgid "Sunday"
+msgstr "Sonntag"
+
+#: models/config.py
+msgid "Base Date Template"
+msgstr "Basis-Datumsvorlage"
+
+#: models/config.py
+msgid ""
+"Template expression from which the delay will be calculated, defaults to "
+"time of invocation."
+msgstr ""
+"Template-Ausdruck von dem aus die Pause berechnet wird, standardmäßig der "
+"Zeitpunkt der Ausführung."
+
+#: models/config.py
+msgid "Delay for number of months"
+msgstr "Diese Anzahl von Monaten pausieren"
+
+#: models/config.py
+msgid "Number of months to delay before proceeding to the next action."
+msgstr ""
+"Anzahl der Monate die gewartet werden soll, bis die nächste Aktion "
+"ausgeführt wird."
+
+#: models/config.py
+msgid "Delay Until this weekday"
+msgstr "Bis zu diesem Wochentag pausieren"
+
+#: models/config.py
+msgid "Only continue after reaching this time."
+msgstr "Ausführung wird erst nach dieser Zeit fortgesetzt."
+
+#: models/config.py
+msgid "Continue from now"
+msgstr "Weiter von jetzt an"
+
+#: models/config.py
+msgid "Return to parent"
+msgstr "Zurück zur übergeordneten Aktion"
+
+#: models/config.py
+msgid "Break to next parent's sibling"
+msgstr "Weiter mit Aktion nach der übergeordneten Aktion"
+
+#: models/config.py
+msgid "Abort run"
+msgstr "Ablauf abbrechen"
+
+#: models/config.py
+msgid "Action if past delay"
+msgstr "Aktion, falls schon nach der Pause"
+
+#: models/config.py
+msgid "What to do if the delay is already past when the action is executed."
+msgstr ""
+"Was passieren soll, wenn der verzögerte Zeitpunkt schon in der "
+"Vergangenheit liegt, wenn die Aktion ausgeführt wird."
+
+#: models/config.py
+#, python-brace-format
+msgid "after {months} month(s)"
+msgstr "nach {months} Monat(en)"
+
+#: models/config.py
+#, python-brace-format
+msgid "on {weekday}"
+msgstr "am {weekday}"
+
+#: models/config.py
+#, python-brace-format
+msgid "at {time}"
+msgstr "um {time}"
+
+#: models/config.py
+msgid "No delay set."
+msgstr "Keine Pause angegeben."
+
+#: models/core.py
+msgid "Flow Name"
+msgstr "Ablaufsname"
+
+#: models/core.py
+msgid "Name of the flow"
+msgstr "Name des Ablaufs"
+
+#: models/core.py
+msgid "Description of the flow"
+msgstr "Beschreibung des Ablaufs"
+
+#: models/core.py
+msgid "Created At"
+msgstr "Erstellt am"
+
+#: models/core.py
+msgid "Updated At"
+msgstr "Aktualisiert am"
+
+#: models/core.py
+msgid "Active Since"
+msgstr "Aktiv seit"
+
+#: models/core.py
+msgid "Max Concurrent Runs"
+msgstr "Maximale gleichzeitige Ausführungen"
+
+#: models/core.py templates/flowcontrol/admin/flowaction_changelist.html
+msgid "Flows"
+msgstr "Abläufe"
+
+#: models/core.py
+msgid "Optional documentation for this action."
+msgstr "Optionale Dokumentation für diese Aktion."
+
+#: models/core.py
+msgid "Action Name"
+msgstr "Aktionsname"
+
+#: models/core.py
+msgid "Name of the action to be performed"
+msgstr "Name der Aktion, die ausgeführt werden soll"
+
+#: models/core.py
+msgid "Flow Action"
+msgstr "Ablaufaktion"
+
+#: models/core.py
+msgid "Flow Actions"
+msgstr "Ablaufaktionen"
+
+#: models/core.py
+msgid "Pending"
+msgstr "Läuft"
+
+#: models/core.py
+msgid "Running"
+msgstr "Wird ausgeführt"
+
+#: models/core.py
+msgid "Waiting"
+msgstr "Wartet"
+
+#: models/core.py
+msgid "Paused"
+msgstr "Pausiert"
+
+#: models/core.py
+msgid "done"
+msgstr "abgeschlossen"
+
+#: models/core.py
+msgid "Complete"
+msgstr "Abgeschlossen"
+
+#: models/core.py
+msgid "Aborted"
+msgstr "Abgebrochen"
+
+#: models/core.py
+msgid "Errored"
+msgstr "Fehlgeschlagen"
+
+#: models/core.py
+msgid "Obsolete"
+msgstr "Obsolet"
+
+#: models/core.py
+msgid "Canceled"
+msgstr "Annulliert"
+
+#: models/core.py
+msgid "Parent Run"
+msgstr "Übergeordneter Ablauf"
+
+#: models/core.py
+msgid "Created by trigger"
+msgstr "Erstellt durch Auslöser"
+
+#: models/core.py
+msgid "Execute action again on resume"
+msgstr "Führe Aktion noch einmal beim Wiederaufruf aus"
+
+#: models/core.py
+msgid "Status"
+msgstr "Status"
+
+#: models/core.py
+msgid "Outcome"
+msgstr "Ergebnis"
+
+#: models/core.py
+msgid "Log"
+msgstr "Protokoll"
+
+#: models/core.py
+msgid "Continue After"
+msgstr "Weiter nach"
+
+#: models/core.py
+msgid "Completed At"
+msgstr "Abgeschlossen am"
+
+#: models/core.py
+msgid "State"
+msgstr "Zustand"
+
+#: models/core.py
+msgid "Flow Run"
+msgstr "Ablaufinstanz"
+
+#: models/core.py
+msgid "Flow Runs"
+msgstr "Ablaufinstanzen"
+
+#: models/core.py
+msgid "Action does not belong to the flow."
+msgstr "Aktion gehört nicht zum Ablauf."
+
+#: models/core.py
+msgid "Trigger Name"
+msgstr "Auslösername"
+
+#: models/core.py
+msgid "Name of the trigger to listen for"
+msgstr "Name des Auslösers, auf den gewartet wird"
+
+#: models/core.py
+msgid "The time when this trigger starts being active"
+msgstr "Die Zeit, wenn dieser Auslöser aktiv wird"
+
+#: models/core.py
+msgid "Flow Trigger"
+msgstr "Ablaufauslöser"
+
+#: models/core.py
+msgid "Flow Triggers"
+msgstr "Ablaufauslöser"
+
+#: templates/admin/flowcontrol/flow/change_form.html
+msgid "Edit actions"
+msgstr "Bearbeite Aktion"
+
+#: templates/flowcontrol/admin/flowaction_add.html
+msgid "Next"
+msgstr "Weiter"
+
+#: templates/flowcontrol/admin/flowaction_changelist.html
+msgid "Add action to flow"
+msgstr "Füge Aktion zu Ablauf hinzu"
+
+#: templates/flowcontrol/admin/flowaction_changelist.html
+msgid "Home"
+msgstr "Start"
+
+#: utils.py
+#, python-brace-format
+msgid "{num} second"
+msgid_plural "{num} seconds"
+msgstr[0] "{num} Sekunde"
+msgstr[1] "{num} Sekunden"
