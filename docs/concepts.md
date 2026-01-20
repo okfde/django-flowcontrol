@@ -20,7 +20,6 @@ The built-in actions are:
 - **Stop Flow**: The flow is stopped.
 - **Set state**: Set the flow run's state to the given JSON, optionally evaluating string values as Django template expressions.
 - **Update state**: Update the flow run's state to the given JSON optionally evaluating string values as Django template expressions.
-- **Update state**: Update the flow run's state to the given JSON optionally evaluating string values as Django template expressions.
 - **Start new flow**: Starts a new flow run based on a configured flow. The new run can start immediately or at a later time.
 - **Delay**: Suspends the flow run for a configurable amount of time.
 
@@ -34,4 +33,4 @@ Flows can be paused and set to resume at a later time. In order to resume flow r
 
 ## Triggers
 
-Triggers can be defined in Python and can be e.g. Django signal handlers. Ther are registered with flow control and you can associate them in the Django admin interface with a flow. The flow will then be started when the trigger is executed.
+Triggers can be defined in Python and can be e.g. Django signal handlers. They are registered with flow control and you can associate them in the Django admin interface with a flow. The flow will then be started when the trigger is executed.

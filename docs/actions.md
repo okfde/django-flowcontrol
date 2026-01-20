@@ -1,6 +1,6 @@
 # Define your own actions
 
-An Action is Python class with a `run` method that takes the parameters `run`, `obj`, and `config`. The `run` method should return a `FlowDirective` to control the flow execution.
+An Action is a Python class with a `run` method that takes the parameters `run`, `obj`, and `config`. The `run` method should return a `FlowDirective` to control the flow execution.
 
 ```python
 from flowcontrol.base import BaseAction
