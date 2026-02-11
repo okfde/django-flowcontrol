@@ -18,6 +18,7 @@ from ..registry import (
     action_registry,
     trigger_registry,
 )
+from ..utils import evaluate_if, validate_template_condition
 
 if TYPE_CHECKING:
     from ..base import BaseAction
@@ -366,6 +367,14 @@ class Trigger(models.Model):
         help_text=_("Name of the trigger to listen for"),
     )
 
+    condition = models.TextField(
+        blank=True,
+        default="",
+        verbose_name="Condition Expression",
+        help_text="A Django template variable expression. Context contains `object`.",
+        validators=[validate_template_condition],
+    )
+
     active_at = models.DateTimeField(
         null=True,
         blank=True,
@@ -396,3 +405,25 @@ class Trigger(models.Model):
 
     def is_active(self) -> bool:
         return self.active_at and self.active_at <= timezone.now()
+
+    def check_condition(
+        self, obj: Optional[models.Model] = None, state: Optional[dict] = None
+    ):
+        """
+        Check if the condition is met based on the provided context.
+        This method should be overridden in subclasses to implement specific logic.
+        """
+        if not self.condition:
+            return True
+        if state is None:
+            context = {}
+        else:
+            context = state.copy()
+        context.update(
+            {
+                "object": obj,
+                "obj": obj,
+            }
+        )
+
+        return evaluate_if(self.condition, context)

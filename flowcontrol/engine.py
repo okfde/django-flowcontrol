@@ -34,6 +34,8 @@ def trigger_flows(
     active_triggers = Trigger.objects.get_active_for_trigger_name(trigger_name)
     runs = []
     for trigger in active_triggers:
+        if not trigger.check_condition(obj, state):
+            continue
         flow = trigger.flow
         run = create_flowrun(flow, obj, state=state, trigger=trigger)
         if run is None:

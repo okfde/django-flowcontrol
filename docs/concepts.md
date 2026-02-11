@@ -33,4 +33,4 @@ Flows can be paused and set to resume at a later time. In order to resume flow r
 
 ## Triggers
 
-Triggers can be defined in Python and can be e.g. Django signal handlers. They are registered with flow control and you can associate them in the Django admin interface with a flow. The flow will then be started when the trigger is executed.
+Triggers can be defined in Python and can be e.g. Django signal handlers. They are registered with flow control and you can associate them in the Django admin interface with a flow. The flow will then be started when the trigger is executed. A condition on the trigger may check if the flow run should be created.
