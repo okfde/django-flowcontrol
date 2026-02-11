@@ -11,8 +11,6 @@ from django.utils.text import smart_split
 from django.utils.timesince import timesince
 from django.utils.translation import ngettext_lazy
 
-from .models.core import FlowAction
-
 
 def evaluate_expression(expression: str, context: dict) -> Any:
     template_literal = make_expression(expression)
@@ -70,6 +68,8 @@ class ActionNode(NamedTuple):
 
 
 def make_action_tree(flow, node_list: list[ActionNode], parent_action=None):
+    from .models.core import FlowAction
+
     for tree_node in node_list:
         action_class, kwargs, children = tree_node
         action = (action_class.model or FlowAction)(
