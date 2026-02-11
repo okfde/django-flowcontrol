@@ -395,7 +395,7 @@ class FlowRunAdmin(admin.ModelAdmin):
         "continue_after",
         "done_at",
     )
-    list_filter = ("status", "outcome")
+    list_filter = ("status", "outcome", "flow")
     search_fields = ("flow__name",)
     readonly_fields = (
         "created_at",
@@ -412,6 +412,8 @@ class FlowRunAdmin(admin.ModelAdmin):
         return obj.content_object
 
     def get_readonly_fields(self, request, obj=None):
+        if request.user.is_superuser:
+            return []
         if obj is None:
             return (
                 self.readonly_fields
