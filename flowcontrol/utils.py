@@ -11,6 +11,8 @@ from django.utils.text import smart_split
 from django.utils.timesince import timesince
 from django.utils.translation import ngettext_lazy
 
+from . import conf
+
 
 def evaluate_expression(expression: str, context: dict) -> Any:
     template_literal = make_expression(expression)
@@ -18,9 +20,13 @@ def evaluate_expression(expression: str, context: dict) -> Any:
 
 
 def make_expression(expression: str) -> Any:
-    engine = Engine.get_default()
+    engine = get_engine()
     parser = Parser("", engine.template_libraries, engine.template_builtins)
     return TemplateIfParser(parser, list(smart_split(expression))).parse()
+
+
+def get_engine():
+    return Engine(builtins=conf.get_flowcontrol_filters())
 
 
 def validate_template_condition(condition: str) -> None:

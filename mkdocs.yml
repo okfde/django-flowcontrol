@@ -20,5 +20,6 @@ nav:
   # - "Getting started": 'tutorial.md'
   - "Concepts": 'concepts.md'
   - "Custom actions": 'actions.md'
+  - "Settings": 'settings.md'
   - "API Reference": 'api.md'
 
