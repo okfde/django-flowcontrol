@@ -151,7 +151,7 @@ def test_flowadmin_flow_add_action(
             "flow": str(flow.id),
             "action": "BreakAction",
             "description": "Test Action",
-            "_position": "first-child",
+            "treebeard_position": "first-child",
             **{save_button: "Button title"},
         },
     )
