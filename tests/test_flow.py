@@ -701,3 +701,18 @@ def test_suspend_and_repeat(flow, temp_registry):
     assert run.state["i"] == 3
     assert run.continue_after is None
     assert not run.repeat_action
+
+
+@pytest.mark.django_db
+def test_flowrun_logging(flowrun):
+    flowrun.append_log("Test 1")
+    flowrun.refresh_from_db()
+    assert flowrun.log == "Test 1"
+
+    flowrun.append_log("Test 2", save=False)
+    flowrun.refresh_from_db()
+    assert flowrun.log == "Test 1"
+
+    flowrun.append_log("Test 2")
+    flowrun.refresh_from_db()
+    assert flowrun.log == "Test 1\nTest 2"

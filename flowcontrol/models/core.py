@@ -317,13 +317,15 @@ class FlowRun(models.Model):
         if self.action and not self.action.flow_id == self.flow_id:
             raise ValidationError(_("Action does not belong to the flow."))
 
-    def append_log(self, message: str):
+    def append_log(self, message: str, save=True):
         """
         Append a message to the flow run log.
         """
         if self.log:
             self.log += "\n"
         self.log += message
+        if save:
+            self.save(update_fields=["log"])
 
 
 def get_trigger_choices():

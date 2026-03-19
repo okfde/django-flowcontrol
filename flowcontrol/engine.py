@@ -204,7 +204,7 @@ def error_flowrun(run: FlowRun, message=""):
     run.status = FlowRun.Status.DONE
     run.outcome = FlowRun.Outcome.ERRORED
     run.done_at = timezone.now()
-    run.append_log(message)
+    run.append_log(message, save=False)
     run.save()
 
 
