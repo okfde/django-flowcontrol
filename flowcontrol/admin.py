@@ -404,6 +404,7 @@ class FlowRunAdmin(admin.ModelAdmin):
         "trigger",
         "repeat_action",
     )
+    raw_id_fields = ("flow", "parent_run", "trigger", "action", "content_type")
 
     actions = ["execute_flowrun"]
 
@@ -455,6 +456,7 @@ class TriggerAdmin(admin.ModelAdmin):
     )
     list_filter = ("flow",)
     search_fields = ("trigger", "flow__name")
+    raw_id_fields = ("flow",)
 
     @admin.display(description=_("Trigger"))
     def trigger_label(self, obj):
