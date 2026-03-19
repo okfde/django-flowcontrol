@@ -34,6 +34,7 @@ class FlowAdmin(admin.ModelAdmin):
         "is_active",
         "active_at",
     )
+    search_fields = ("name",)
     actions = ["duplicate_flow", "activate_flows", "deactivate_flows"]
 
     @admin.display(description=_("Actions"))
