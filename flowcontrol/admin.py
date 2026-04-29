@@ -6,7 +6,7 @@ from django.contrib.admin import widgets
 from django.core.exceptions import (
     PermissionDenied,
 )
-from django.db.models import Count, Q
+from django.db.models import Count, Q, QuerySet
 from django.forms.models import modelform_factory
 from django.shortcuts import redirect
 from django.urls import path, reverse
@@ -272,7 +272,7 @@ class FlowActionSubAdmin(TreeAdmin):
         return config
 
     @admin.action(description=_("Duplicate selected actions"))
-    def duplicate_action(self, request, queryset):
+    def duplicate_action(self, request, queryset: QuerySet[FlowAction]):
         """
         Custom action to duplicate selected FlowActions.
         This creates a new FlowAction with the same configuration.

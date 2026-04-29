@@ -134,7 +134,7 @@ class FlowAction(MP_Node):
             return None
         return action_class()
 
-    def get_config(self):
+    def get_config(self) -> Optional["ActionBase"]:
         action_class = self.get_action_class()
         if not action_class or action_class.model is None:
             return None

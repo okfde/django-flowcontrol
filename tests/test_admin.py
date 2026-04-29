@@ -395,6 +395,24 @@ def test_duplicate_action(admin_user, client, flow_with_all_actions):
     assert new_action is not None
     assert new_action.action == action.action
 
+    old_count = flow.actions.count()
+    action = flow.actions.filter(action="AbortAction").first()
+
+    resp = client.post(
+        reverse("admin:flowcontrol-flow-list_actions", kwargs={"object_id": flow.id}),
+        data={
+            "action": "duplicate_action",
+            "_selected_action": [action.id],
+        },
+    )
+    assert resp.status_code == 302
+    new_count = flow.actions.count()
+    assert new_count == old_count + 1
+
+    new_action = action.get_last_sibling()
+    assert new_action is not None
+    assert new_action.action == action.action
+
 
 def test_duplicate_action_with_children(flow):
     make_action_tree(
