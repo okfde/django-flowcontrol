@@ -33,9 +33,21 @@ class FlowAdmin(admin.ModelAdmin):
         "updated_at",
         "is_active",
         "active_at",
+        "active_count",
+        "total_count",
     )
     search_fields = ("name",)
     actions = ["duplicate_flow", "activate_flows", "deactivate_flows"]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        qs = qs.annotate(
+            active_count=Count(
+                "runs", distinct=True, filter=Q(runs__status=FlowRun.Status.WAITING)
+            ),
+            total_count=Count("runs", distinct=True),
+        )
+        return qs
 
     @admin.display(description=_("Actions"))
     def edit_actions(self, obj):
@@ -48,6 +60,14 @@ class FlowAdmin(admin.ModelAdmin):
     @admin.display(description=_("Active"), boolean=True)
     def is_active(self, obj):
         return bool(obj.active_at)
+
+    @admin.display(description=_("Active runs"), ordering="active_count")
+    def active_count(self, obj):
+        return obj.active_count
+
+    @admin.display(description=_("Total runs"), ordering="total_count")
+    def total_count(self, obj):
+        return obj.total_count
 
     @admin.action(description=_("Activate selected flows"))
     def activate_flows(self, request, queryset):
