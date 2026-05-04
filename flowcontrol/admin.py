@@ -18,14 +18,25 @@ from django.utils.translation import gettext_lazy as _
 from treebeard.admin import TreeAdmin
 from treebeard.forms import movenodeform_factory
 
+from flowcontrol.widgets import ConditionExpressionWidget
+
 from .engine import execute_flowrun
 from .models import Flow, FlowAction, FlowRun, Trigger
 from .registry import action_registry
 from .utils import duplicate_action
 
 
+class FlowAdminForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["condition"].widget = ConditionExpressionWidget(
+            content_type=self.instance.content_type
+        )
+
+
 @admin.register(Flow)
 class FlowAdmin(admin.ModelAdmin):
+    form = FlowAdminForm
     list_display = (
         "name",
         "edit_actions",
@@ -474,8 +485,18 @@ class FlowRunAdmin(admin.ModelAdmin):
             execute_flowrun(run)
 
 
+class TriggerAdminForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        ct = None
+        if self.instance and self.instance.flow:
+            ct = self.instance.flow.content_type
+        self.fields["condition"].widget = ConditionExpressionWidget(content_type=ct)
+
+
 @admin.register(Trigger)
 class TriggerAdmin(admin.ModelAdmin):
+    form = TriggerAdminForm
     list_display = (
         "trigger_label",
         "flow",

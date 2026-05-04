@@ -1,0 +1,7 @@
+{% load i18n %}
+
+<div data-flowcontrol>
+    {% include "django/forms/widgets/textarea.html" %}
+    <flowcontrol-condition config="{{ config }}">
+    </flowcontrol-condition>
+</div>
