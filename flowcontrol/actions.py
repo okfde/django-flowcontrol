@@ -62,6 +62,7 @@ class StartFlowAction(BaseAction):
     description = _("This action starts another flow.")
     group = _("Control flow")
     model = StartFlow
+    raw_id_fields = ("start_flow",)
 
     def run(self, *, run, obj, config: StartFlow) -> FlowDirective:
         from .engine import create_flowrun
@@ -200,6 +201,7 @@ class WaitForTriggerAction(BaseAction):
     description = _("This action suspends the flow run until a trigger is received.")
     group = _("Control flow")
     model = WaitForTrigger
+    raw_id_fields = ("trigger",)
 
     def run(self, *, run, obj, config: WaitForTrigger) -> FlowDirective:
         run.continue_after = None
