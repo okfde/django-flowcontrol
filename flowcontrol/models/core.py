@@ -421,25 +421,3 @@ class Trigger(models.Model):
 
     def is_active(self) -> bool:
         return self.active_at and self.active_at <= timezone.now()
-
-    def check_condition(
-        self, obj: Optional[models.Model] = None, state: Optional[dict] = None
-    ):
-        """
-        Check if the condition is met based on the provided context.
-        This method should be overridden in subclasses to implement specific logic.
-        """
-        if not self.condition:
-            return True
-        if state is None:
-            context = {}
-        else:
-            context = state.copy()
-        context.update(
-            {
-                "object": obj,
-                "obj": obj,
-            }
-        )
-
-        return evaluate_if(self.condition, context)

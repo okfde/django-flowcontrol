@@ -34,7 +34,7 @@ def trigger_flows(
     active_triggers = Trigger.objects.get_active_for_trigger_name(trigger_name)
     runs = []
     for trigger in active_triggers:
-        if not trigger.check_condition(obj, state):
+        if not check_condition(trigger.condition, obj, state):
             continue
         flow = trigger.flow
         run = create_flowrun(flow, obj, state=state, trigger=trigger)
@@ -395,3 +395,33 @@ def execute_action(
             "Expected a FlowDirective value or None."
         )
     return directive
+
+
+def check_condition(
+    condition: str, obj: Optional[models.Model] = None, state: Optional[dict] = None
+) -> bool:
+    """
+    Check if a condition is true in the given context.
+    The condition should be a valid Django template variable expression.
+
+    Args:
+        condition (str): The condition to check.
+        context (dict): The context to evaluate the condition against.
+
+    Returns:
+        bool: True if the condition is true, False otherwise.
+    """
+    if not condition:
+        return True
+    if state is None:
+        context = {}
+    else:
+        context = state.copy()
+    context.update(
+        {
+            "object": obj,
+            "obj": obj,
+        }
+    )
+
+    return evaluate_if(condition, context)
