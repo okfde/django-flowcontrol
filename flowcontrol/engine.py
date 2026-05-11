@@ -83,6 +83,8 @@ def create_flowrun(
 
     if obj is not None:
         content_type = ContentType.objects.get_for_model(obj)
+        if flow.content_type and flow.content_type != content_type:
+            return
         object_id = obj.pk
 
         if flow.max_per_object > 0:
