@@ -495,6 +495,11 @@ def test_flow_limit_max_concurrent_per_object(flow, user):
     run = create_flowrun(flow, obj=user)
     assert run is None
 
+    flow.max_concurrent_per_object = 0
+    run = create_flowrun(flow, obj=user)
+    assert run is not None
+    assert run.status == FlowRun.Status.PENDING
+
 
 @pytest.mark.django_db
 def test_suspend_no_continue_timestamp(flow):
@@ -618,7 +623,8 @@ def test_execute_flow_waiting_no_continue_after(flowrun):
     flowrun.status = FlowRun.Status.WAITING
     flowrun.continue_after = None
     with pytest.raises(
-        ValueError, match="Flow run is waiting but has no continue_after time set"
+        ValueError,
+        match="Flow run is waiting but has neither trigger nor continue after time set",
     ):
         execute_flowrun(flowrun)
 

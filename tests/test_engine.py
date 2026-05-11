@@ -1,3 +1,6 @@
+from django.contrib.auth.models import Group
+from django.contrib.contenttypes.models import ContentType
+
 import pytest
 
 from flowcontrol.engine import (
@@ -26,6 +29,38 @@ def test_start_flowrun(flow, user):
     run = start_flowrun(flow, user)
     assert isinstance(run, FlowRun)
     assert run.status == FlowRun.Status.DONE or run.status == FlowRun.Status.PENDING
+
+
+@pytest.mark.django_db
+def test_start_flowrun_flow_condition_false(flow, user):
+    flow.condition = 'object.id == "foobar"'
+    run = start_flowrun(flow, user)
+    assert isinstance(run, FlowRun)
+    assert run.status == FlowRun.Status.DONE
+    assert run.outcome == FlowRun.Outcome.OBSOLETE
+    assert "Discarded because flow condition" in run.log
+
+
+@pytest.mark.django_db
+def test_start_flowrun_flow_condition_true(flow, user):
+    user.username = "foobar"
+    user.save()
+    flow.condition = 'object.username == "foobar"'
+    run = start_flowrun(flow, user)
+    assert isinstance(run, FlowRun)
+    assert run.status == FlowRun.Status.DONE
+    assert run.outcome == FlowRun.Outcome.COMPLETE
+    assert run.log == ""
+
+
+@pytest.mark.django_db
+def test_start_flowrun_flow_content_type(flow, user):
+    flow.content_type = ContentType.objects.get_for_model(Group)
+    run = start_flowrun(flow, user)
+    assert run is None
+    flow.content_type = ContentType.objects.get_for_model(user)
+    run = start_flowrun(flow, user)
+    assert run is not None
 
 
 @pytest.mark.django_db

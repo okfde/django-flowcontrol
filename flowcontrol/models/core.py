@@ -18,7 +18,7 @@ from ..registry import (
     action_registry,
     trigger_registry,
 )
-from ..utils import evaluate_if, validate_template_condition
+from ..utils import validate_template_condition
 
 if TYPE_CHECKING:
     from ..base import BaseAction
@@ -257,6 +257,18 @@ class FlowRun(models.Model):
         related_name="runs",
         verbose_name=_("Created by trigger"),
     )
+    waiting_trigger = models.ForeignKey(
+        "Trigger",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="waiting_runs",
+        verbose_name=_("Waiting on trigger"),
+    )
+    waiting_trigger_match_object = models.BooleanField(
+        default=True,
+        verbose_name=_("Waiting trigger requires object match"),
+    )
 
     action = models.ForeignKey(
         FlowAction,
@@ -363,24 +375,31 @@ class TriggerManager(models.Manager):
     def get_active_for_trigger_name(self, trigger_name: str):
         return (
             self.get_active()
-            .filter(trigger=trigger_name, flow__active_at__lte=timezone.now())
+            .filter(trigger=trigger_name)
+            .filter(Q(flow__isnull=True) | Q(flow__active_at__lte=timezone.now()))
             .select_related("flow")
         )
 
 
 class Trigger(models.Model):
-    flow = models.ForeignKey(
-        Flow,
-        on_delete=models.CASCADE,
-        related_name="triggers",
-        verbose_name=_("Flow"),
-    )
-
     trigger = models.CharField(
         max_length=MAX_TRIGGER_NAME_LENGTH,
         choices=get_trigger_choices,
         verbose_name=_("Trigger Name"),
         help_text=_("Name of the trigger to listen for"),
+    )
+    flow = models.ForeignKey(
+        Flow,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="triggers",
+        verbose_name=_("Flow"),
+    )
+    create_flow = models.BooleanField(
+        default=True,
+        verbose_name=_("Create flow run on trigger"),
+        help_text=_("Whether to create a new flow run when this trigger is received."),
     )
 
     condition = models.TextField(
@@ -409,14 +428,30 @@ class Trigger(models.Model):
             models.UniqueConstraint(
                 fields=["flow", "trigger"],
                 name="unique_flow_trigger",
-            )
+                condition=Q(flow__isnull=False),
+            ),
+            models.CheckConstraint(
+                condition=Q(create_flow=True, flow__isnull=False)
+                | Q(create_flow=False),
+                name="flow_required_if_create_flow",
+            ),
         ]
 
     def __str__(self):
         trigger = self.get_trigger()
+        flow_name = self.flow.name if self.create_flow else "(no flow)"
         if trigger:
-            return f"{trigger} -> {self.flow.name}"
-        return f"{self.trigger}(!) {self.flow.name}"
+            return f"{trigger} -> {flow_name}"
+        return f"{self.trigger}(!) {flow_name}"
+
+    def clean(self):
+        """
+        Custom validation to ensure that the flow is active when creating a run.
+        """
+        if self.create_flow and not self.flow_id:
+            raise ValidationError(
+                _("A flow is required when creating a flow on trigger.")
+            )
 
     def get_trigger(self) -> Optional[type[RegisteredTrigger]]:
         return trigger_registry.get_trigger(self.trigger)

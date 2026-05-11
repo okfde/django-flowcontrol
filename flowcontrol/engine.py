@@ -38,19 +38,56 @@ def trigger_flows(
     for trigger in active_triggers:
         if not check_condition(trigger.condition, obj, state):
             continue
-        flow = trigger.flow
-        run = create_flowrun(flow, obj, state=state, trigger=trigger)
-        if run is None:
-            logger.warning(
-                f"Flow run for flow {flow.id} and object {obj} was not triggered due to limits."
+        if trigger.create_flow:
+            flow = trigger.flow
+            run = create_flowrun(flow, obj, state=state, trigger=trigger)
+            if run is None:
+                logger.warning(
+                    f"Flow run for flow {flow.id} and object {obj} was not triggered due to limits."
+                )
+                continue
+            runs.append(run)
+        else:
+            waiting_runs = get_flowruns_waiting_on_trigger(
+                trigger, obj=obj, immediate=immediate
             )
-            continue
-        runs.append(run)
+            runs.extend(waiting_runs)
+            if not immediate:
+                # Schedule to continue next time continue_flowruns is called
+                now = timezone.now()
+                for run in waiting_runs:
+                    run.waiting_trigger = None
+                    run.continue_after = now
+                    run.save()
 
     if immediate:
         for run in runs:
             execute_flowrun(run)
     return runs
+
+
+def get_flowruns_waiting_on_trigger(
+    trigger: Trigger,
+    obj: Optional[models.Model] = None,
+    immediate: bool = False,
+) -> list[FlowRun]:
+    suspended_runs = FlowRun.objects.filter(
+        status=FlowRun.Status.WAITING,
+        waiting_trigger=trigger,
+    ).filter(
+        models.Q(continue_after=None) | models.Q(continue_after__lte=timezone.now())
+    )
+    if obj is not None:
+        content_type = ContentType.objects.get_for_model(obj)
+        condition = models.Q(content_type=content_type, object_id=obj.pk)
+    else:
+        condition = models.Q(content_type=None, object_id=None)
+
+    suspended_runs = suspended_runs.filter(
+        condition | models.Q(waiting_trigger_match_object=False)
+    )
+
+    return suspended_runs
 
 
 def create_flowrun(
@@ -214,9 +251,8 @@ def error_flowrun(run: FlowRun, message: str = ""):
 
 
 def suspend_flowrun(run: FlowRun):
-    if run.continue_after is None:
+    if not run.continue_after and not run.waiting_trigger:
         run.continue_after = timezone.now()
-
     run.status = FlowRun.Status.WAITING
     run.save()
 
@@ -280,16 +316,19 @@ def execute_flowrun(
 
     skip_execution = False
     if run.status == FlowRun.Status.WAITING:
-        if run.continue_after is None:
-            raise ValueError("Flow run is waiting but has no continue_after time set")
+        if run.continue_after is None and run.waiting_trigger is None:
+            raise ValueError(
+                "Flow run is waiting but has neither trigger nor continue after time set"
+            )
         if run.action is None:
             raise ValueError("Flow run is waiting but has no action set")
-        if timezone.now() < run.continue_after:
+        if run.continue_after and timezone.now() < run.continue_after:
             # Still waiting, do not execute yet
             return
         skip_execution = not run.repeat_action
         run.repeat_action = False
         run.continue_after = None
+        run.waiting_trigger = None
     else:
         if not run.action:
             run.action = run.flow.actions.first()

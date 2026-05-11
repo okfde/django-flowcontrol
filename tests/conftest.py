@@ -7,7 +7,7 @@ import pytest
 
 from flowcontrol.actions import SetStateAction
 from flowcontrol.models import Flow, FlowRun, Trigger
-from flowcontrol.registry import action_registry
+from flowcontrol.registry import action_registry, register_trigger, trigger_registry
 from flowcontrol.utils import ActionNode, make_action_tree
 
 
@@ -30,6 +30,16 @@ def user(db):
 def trigger(flow):
     return Trigger.objects.create(
         flow=flow, trigger="trigger_name", active_at=timezone.now()
+    )
+
+
+@pytest.fixture
+def wait_trigger():
+    return Trigger.objects.create(
+        flow=None,
+        trigger="wait_trigger_name",
+        active_at=timezone.now(),
+        create_flow=False,
     )
 
 
@@ -81,6 +91,11 @@ def flow_action(db, flow):
 DEFAULT_CONFIG = {
     "StartFlowAction": lambda: {
         "start_flow": Flow.objects.create(name="Empty Flow", active_at=timezone.now())
+    },
+    "WaitForTriggerAction": lambda: {
+        "trigger": Trigger.objects.create(
+            trigger="test_trigger", active_at=timezone.now(), create_flow=False
+        )
     },
 }
 

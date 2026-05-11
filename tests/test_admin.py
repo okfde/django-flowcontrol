@@ -462,3 +462,16 @@ def test_flowrun_action_flow_identical(flow_with_all_actions, other_flow):
     flowrun.flow = other_flow
     with pytest.raises(ValidationError):
         flowrun.full_clean()
+
+
+def test_trigger_model_validation(trigger, temp_registry):
+    from flowcontrol.registry import register_trigger
+
+    register_trigger(trigger.trigger)
+    trigger.create_flow = True
+    trigger.save()
+    trigger.full_clean()
+
+    trigger.flow = None
+    with pytest.raises(ValidationError):
+        trigger.full_clean()

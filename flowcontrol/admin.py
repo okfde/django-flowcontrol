@@ -426,7 +426,14 @@ class FlowRunAdmin(admin.ModelAdmin):
         "trigger",
         "repeat_action",
     )
-    raw_id_fields = ("flow", "parent_run", "trigger", "action", "content_type")
+    raw_id_fields = (
+        "flow",
+        "parent_run",
+        "trigger",
+        "waiting_trigger",
+        "action",
+        "content_type",
+    )
 
     actions = ["execute_flowrun"]
 

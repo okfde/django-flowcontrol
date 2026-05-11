@@ -15,7 +15,7 @@ from ..utils import (
     readable_timedelta,
     validate_template_condition,
 )
-from .core import ActionBase, Flow
+from .core import ActionBase, Flow, Trigger
 
 
 class Condition(ActionBase):
@@ -255,3 +255,25 @@ class ForLoop(ActionBase):
         if self.var_name:
             return f"{self.var_name}: {loop}"
         return loop
+
+
+class WaitForTrigger(ActionBase):
+    trigger = models.ForeignKey(
+        Trigger,
+        on_delete=models.PROTECT,
+        related_name="wait_actions",
+        verbose_name=_("Trigger to wait for"),
+        help_text=_("The trigger that this action will wait for before proceeding."),
+    )
+    require_object = models.BooleanField(
+        default=True,
+        verbose_name=_("Require object"),
+        help_text=_(
+            _(
+                "If checked, the trigger will only be processed if it matches the flow runs object."
+            )
+        ),
+    )
+
+    def __str__(self):
+        return _("Wait for trigger: {trigger}").format(trigger=self.trigger)

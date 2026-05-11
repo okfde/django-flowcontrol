@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from flowcontrol.engine import execute_flowrun
 
 from .base import BaseAction, FlowDirective
-from .models.config import Condition, Delay, ForLoop, StartFlow, State
+from .models.config import Condition, Delay, ForLoop, StartFlow, State, WaitForTrigger
 from .registry import register_action
 
 logger = logging.getLogger(__name__)
@@ -192,3 +192,18 @@ class AbortAction(BaseAction):
 
     def run(self, *, run, obj, config=None) -> FlowDirective:
         return FlowDirective.ABORT
+
+
+@register_action
+class WaitForTriggerAction(BaseAction):
+    verbose_name = _("Wait for trigger")
+    description = _("This action suspends the flow run until a trigger is received.")
+    group = _("Control flow")
+    model = WaitForTrigger
+
+    def run(self, *, run, obj, config: WaitForTrigger) -> FlowDirective:
+        run.continue_after = None
+        run.repeat_action = False
+        run.waiting_trigger = config.trigger
+        run.waiting_trigger_match_object = config.require_object
+        return FlowDirective.SUSPEND
