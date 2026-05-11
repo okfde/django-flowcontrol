@@ -37,6 +37,7 @@ class FlowAdmin(admin.ModelAdmin):
         "total_count",
     )
     search_fields = ("name",)
+    raw_id_fields = ("content_type",)
     actions = ["duplicate_flow", "activate_flows", "deactivate_flows"]
 
     def get_queryset(self, request):

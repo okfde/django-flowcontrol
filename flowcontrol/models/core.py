@@ -67,6 +67,18 @@ class Flow(models.Model):
     max_per_object = models.PositiveIntegerField(default=0)
     max_concurrent_per_object = models.PositiveIntegerField(default=1)
 
+    content_type = models.ForeignKey(
+        ContentType, on_delete=models.SET_NULL, null=True, blank=True
+    )
+
+    condition = models.TextField(
+        blank=True,
+        default="",
+        verbose_name=_("Condition to keep during run"),
+        help_text=_("Cancels the run if this condition is not met during execution."),
+        validators=[validate_template_condition],
+    )
+
     objects = FlowManager()
 
     class Meta:
@@ -372,8 +384,10 @@ class Trigger(models.Model):
     condition = models.TextField(
         blank=True,
         default="",
-        verbose_name="Condition Expression",
-        help_text="A Django template variable expression. Context contains `object`.",
+        verbose_name=_("Condition Expression"),
+        help_text=_(
+            "A Django template variable expression. Context contains `object`."
+        ),
         validators=[validate_template_condition],
     )
 
