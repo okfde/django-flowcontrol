@@ -333,6 +333,8 @@ class FlowRun(models.Model):
         """
         Append a message to the flow run log.
         """
+        if not message:
+            return
         if self.log:
             self.log += "\n"
         self.log += message

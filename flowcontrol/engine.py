@@ -6,6 +6,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
 
+from flowcontrol.utils import evaluate_if
+
 from .base import FlowDirective
 from .models import Flow, FlowAction, FlowRun, Trigger
 
@@ -188,10 +190,11 @@ def cancel_flowruns_for_object(obj: models.Model):
     )
 
 
-def discard_flowrun(run: FlowRun):
+def discard_flowrun(run: FlowRun, message: str = ""):
     run.status = FlowRun.Status.DONE
     run.outcome = FlowRun.Outcome.OBSOLETE
     run.done_at = timezone.now()
+    run.append_log(message, save=False)
     run.save()
 
 
@@ -202,7 +205,7 @@ def abort_flowrun(run: FlowRun):
     run.save()
 
 
-def error_flowrun(run: FlowRun, message=""):
+def error_flowrun(run: FlowRun, message: str = ""):
     run.status = FlowRun.Status.DONE
     run.outcome = FlowRun.Outcome.ERRORED
     run.done_at = timezone.now()
@@ -265,6 +268,15 @@ def execute_flowrun(
             )
             discard_flowrun(run)
             return
+
+    if not check_condition(run.flow.condition, obj, run.state):
+        discard_flowrun(
+            run,
+            message="Discarded because flow condition {} was not met.".format(
+                run.flow.condition
+            ),
+        )
+        return
 
     skip_execution = False
     if run.status == FlowRun.Status.WAITING:
