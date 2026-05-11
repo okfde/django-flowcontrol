@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 2
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.12'",
@@ -225,7 +225,7 @@ wheels = [
 
 [[package]]
 name = "django-flowcontrol"
-version = "0.0.6"
+version = "0.0.10"
 source = { editable = "." }
 dependencies = [
     { name = "django", version = "5.2.12", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
