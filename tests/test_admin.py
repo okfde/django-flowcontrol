@@ -98,6 +98,18 @@ def test_flowadmin_flow_actions(admin_user, client, flow_with_all_actions, flow_
     assert resp.status_code == 302
 
 
+def test_flowadmin_all_flow_actions(admin_user, client, flow_with_all_actions):
+    client.force_login(admin_user)
+    for flow_action in flow_with_all_actions.actions.all():
+        resp = client.get(
+            reverse(
+                "admin:flowcontrol-flow-change_action",
+                args=(flow_with_all_actions.id, flow_action.id),
+            )
+        )
+        assert resp.status_code == 200
+
+
 @pytest.mark.parametrize(
     "save_button,next_url",
     [
