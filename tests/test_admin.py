@@ -263,6 +263,18 @@ def test_flowrunadmin_add(admin_user, client):
     assert resp.status_code == 200
 
 
+def test_flowrunadmin_staff(staff_user, client):
+    client.force_login(staff_user)
+    resp = client.get(reverse("admin:flowcontrol_flowrun_add"))
+    assert resp.status_code == 200
+
+
+def test_flowrunadmin_staff_change(staff_user, client, flowrun):
+    client.force_login(staff_user)
+    resp = client.get(reverse("admin:flowcontrol_flowrun_change", args=(flowrun.id,)))
+    assert resp.status_code == 200
+
+
 def test_flowrunadmin_change(admin_user, client, flowrun):
     client.force_login(admin_user)
     resp = client.get(reverse("admin:flowcontrol_flowrun_change", args=(flowrun.id,)))

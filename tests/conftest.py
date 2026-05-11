@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Permission, User
 from django.contrib.contenttypes.models import ContentType
 from django.test import RequestFactory
 from django.utils import timezone
@@ -50,6 +50,21 @@ def admin_user(django_user_model):
     return django_user_model.objects.create_superuser(
         username="admin", email="admin@example.com", password="password"
     )
+
+
+@pytest.fixture
+def staff_user(django_user_model):
+    user = django_user_model.objects.create_user(
+        username="staff", email="staff@example.com", password="password", is_staff=True
+    )
+    for model in (Flow, FlowRun, Trigger):
+        for perm in ("add", "change", "view"):
+            permission = Permission.objects.get(
+                codename=perm + "_" + model._meta.model_name,
+                content_type=ContentType.objects.get_for_model(model),
+            )
+            user.user_permissions.add(permission)
+    return user
 
 
 @pytest.fixture
