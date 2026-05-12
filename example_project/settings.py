@@ -128,4 +128,8 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+FLOWCONTROL_CONTENT_TYPES = [
+    "auth.user",
+]
+
 from .local_settings import *  # noqa: F401, F403

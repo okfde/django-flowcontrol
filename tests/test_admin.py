@@ -56,6 +56,13 @@ def test_flowadmin_flow(admin_user, client, flow):
     assert resp.status_code == 200
 
 
+def test_flowadmin_flow_limit_content_types(admin_user, client, flow, settings):
+    settings.FLOWCONTROL_CONTENT_TYPES = ["auth.user"]
+    client.force_login(admin_user)
+    resp = client.get(reverse("admin:flowcontrol_flow_change", args=(flow.id,)))
+    assert resp.status_code == 200
+
+
 def test_flowadmin_flow_actions(admin_user, client, flow_with_all_actions, flow_action):
     client.force_login(admin_user)
     resp = client.get(reverse("admin:flowcontrol_flow_changelist"))

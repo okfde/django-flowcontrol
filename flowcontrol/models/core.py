@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Optional
 
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
@@ -22,6 +23,19 @@ from ..utils import validate_template_condition
 
 if TYPE_CHECKING:
     from ..base import BaseAction
+
+
+def get_content_type_choices():
+    filter_content_types = getattr(settings, "FLOWCONTROL_CONTENT_TYPES", None)
+    if filter_content_types is None:
+        return None
+
+    filter_q = models.Q()
+    for app_label_model_name in filter_content_types:
+        app_label, model_name = app_label_model_name.split(".", 1)
+        filter_q |= Q(app_label=app_label, model=model_name.lower())
+
+    return filter_q
 
 
 class FlowManager(models.Manager):
@@ -68,7 +82,11 @@ class Flow(models.Model):
     max_concurrent_per_object = models.PositiveIntegerField(default=1)
 
     content_type = models.ForeignKey(
-        ContentType, on_delete=models.SET_NULL, null=True, blank=True
+        ContentType,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        limit_choices_to=get_content_type_choices,
     )
 
     condition = models.TextField(
