@@ -53,7 +53,7 @@ class FlowAdmin(admin.ModelAdmin):
     @admin.display(description=_("Actions"))
     def edit_actions(self, obj):
         return format_html(
-            '<a class="button" href="{}">{}</a>',
+            '<a href="{}">{}</a>',
             reverse("admin:flowcontrol-flow-list_actions", args=[obj.id]),
             _("Edit Actions"),
         )
