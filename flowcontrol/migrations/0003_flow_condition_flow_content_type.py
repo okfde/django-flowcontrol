@@ -21,6 +21,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='flow',
             name='content_type',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='contenttypes.contenttype'),
+            field=models.ForeignKey(blank=True, limit_choices_to=flowcontrol.models.core.get_content_type_choices, null=True, on_delete=django.db.models.deletion.SET_NULL, to='contenttypes.contenttype'),
         ),
     ]
