@@ -26,11 +26,12 @@ if TYPE_CHECKING:
 
 
 def get_content_type_choices():
+    filter_q = models.Q()
+
     filter_content_types = getattr(settings, "FLOWCONTROL_CONTENT_TYPES", None)
     if filter_content_types is None:
-        return None
+        return filter_q
 
-    filter_q = models.Q()
     for app_label_model_name in filter_content_types:
         app_label, model_name = app_label_model_name.split(".", 1)
         filter_q |= Q(app_label=app_label, model=model_name.lower())
