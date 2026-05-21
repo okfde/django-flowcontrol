@@ -11,6 +11,7 @@ from flowcontrol.actions import (
     DelayAction,
     ForLoopAction,
     IfAction,
+    SendAlertAction,
     SetStateAction,
     StartFlowAction,
     UpdateStateAction,
@@ -18,7 +19,14 @@ from flowcontrol.actions import (
 )
 from flowcontrol.base import BaseAction, FlowDirective
 from flowcontrol.models import Flow, FlowRun
-from flowcontrol.models.config import Condition, Delay, ForLoop, StartFlow, State
+from flowcontrol.models.config import (
+    Condition,
+    Delay,
+    EmailAlert,
+    ForLoop,
+    StartFlow,
+    State,
+)
 
 
 @pytest.fixture
@@ -393,3 +401,37 @@ def test_add_child_wrong_flow(flow):
         if_action.add_child(
             flow=other_flow, action="SetStateAction", state={"foo": "bar"}
         )
+
+
+def test_send_alert(run, settings, mailoutbox):
+    settings.MANAGERS = [
+        ("Manager", "test@example.com"),
+        ("Manager2", "test2@example.com"),
+    ]
+    message = EmailAlert(subject="Alert", body="{{ test }}", templated=False)
+    action = SendAlertAction()
+    run.state = {"test": "foobar"}
+    action._set_context(run.state.copy())
+    directive = action.run(obj=None, run=run, config=message)
+    assert directive == FlowDirective.CONTINUE
+    assert len(mailoutbox) == 1
+    mail = mailoutbox[0]
+    assert mail.subject == "Alert"
+    assert mail.to == ["test@example.com", "test2@example.com"]
+    assert mail.body == "{{ test }}"
+
+
+def test_send_alert_templated(run, mailoutbox):
+    message = EmailAlert(
+        subject="Alert", body="{{ test }}", templated=True, recipient="info@example.com"
+    )
+    action = SendAlertAction()
+    run.state = {"test": "foobar"}
+    action._set_context(run.state.copy())
+    directive = action.run(obj=None, run=run, config=message)
+    assert directive == FlowDirective.CONTINUE
+    assert len(mailoutbox) == 1
+    mail = mailoutbox[0]
+    assert mail.subject == "Alert"
+    assert mail.to == ["info@example.com"]
+    assert mail.body == "foobar"

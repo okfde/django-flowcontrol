@@ -1,13 +1,24 @@
 import logging
 
+from django.conf import settings
+from django.core.mail import send_mail
+from django.template import Context, Template
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from flowcontrol.engine import execute_flowrun
-
 from .base import BaseAction, FlowDirective
-from .models.config import Condition, Delay, ForLoop, StartFlow, State, WaitForTrigger
+from .engine import execute_flowrun
+from .models.config import (
+    Condition,
+    Delay,
+    EmailAlert,
+    ForLoop,
+    StartFlow,
+    State,
+    WaitForTrigger,
+)
 from .registry import register_action
+from .utils import get_engine
 
 logger = logging.getLogger(__name__)
 
@@ -209,3 +220,29 @@ class WaitForTriggerAction(BaseAction):
         run.waiting_trigger = config.trigger
         run.waiting_trigger_match_object = config.require_object
         return FlowDirective.SUSPEND
+
+
+@register_action
+class SendAlertAction(BaseAction):
+    verbose_name = _("Send alert")
+    description = _("This action will send an email alert.")
+    group = _("Alerts")
+    model = EmailAlert
+
+    def run(self, *, run, obj, config: EmailAlert) -> FlowDirective:
+        if config.templated:
+            template = Template(config.body, engine=get_engine())
+            body = template.render(Context(self.get_context()))
+        else:
+            body = config.body
+        if config.recipient:
+            recipients = [config.recipient]
+        else:
+            recipients = [a[1] for a in settings.MANAGERS]
+        send_mail(
+            config.subject,
+            body,
+            from_email=settings.SERVER_EMAIL,
+            recipient_list=recipients,
+        )
+        return FlowDirective.CONTINUE

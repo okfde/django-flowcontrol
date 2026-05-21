@@ -277,3 +277,16 @@ class WaitForTrigger(ActionBase):
 
     def __str__(self):
         return _("Wait for trigger: {trigger}").format(trigger=self.trigger)
+
+
+class EmailAlert(ActionBase):
+    subject = models.CharField(max_length=255)
+    body = models.TextField(blank=True)
+    templated = models.BooleanField(default=False)
+    recipient = models.EmailField(blank=True)
+
+    def __str__(self):
+        return _("Send alert '{subject}' to {recipient}").format(
+            subject=self.subject,
+            recipient=self.recipient or _("all configured managers"),
+        )
