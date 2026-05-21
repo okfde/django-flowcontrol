@@ -250,7 +250,13 @@ class FlowActionSubAdmin(TreeAdmin):
     choose_action_key = "action"
     exclude = ("path", "depth", "numchild")
 
-    list_display = ("action_name", "description_label", "config", "run_count")
+    list_display = (
+        "action_name",
+        "description_label",
+        "config",
+        "waiting_count",
+        "done_count",
+    )
     actions = ["duplicate_action"]
 
     def __init__(self, model, admin_site, flow):
@@ -280,16 +286,23 @@ class FlowActionSubAdmin(TreeAdmin):
         return str(config)
 
     @admin.display(description=_("Runs waiting on this action"))
-    def run_count(self, obj):
-        return obj.run_count
+    def waiting_count(self, obj):
+        return obj.waiting_count
+
+    @admin.display(description=_("Runs completed on this action"))
+    def done_count(self, obj):
+        return obj.done_count
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         qs = qs.filter(flow=self.flow)
         qs = qs.annotate(
-            run_count=Count(
+            waiting_count=Count(
                 "runs", distinct=True, filter=Q(runs__status=FlowRun.Status.WAITING)
-            )
+            ),
+            done_count=Count(
+                "runs", distinct=True, filter=Q(runs__status=FlowRun.Status.DONE)
+            ),
         )
         return qs
 
