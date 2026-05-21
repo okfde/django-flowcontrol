@@ -231,9 +231,9 @@ def test_update_state_action_evaluate(run):
     run.state = {"foo": "bar", "bar": "boo"}
     state = State(
         state={
-            "baz": "qux",
-            "foo": '{{ foo|startswith:"b" }}',
-            "bar": '{{ foo|add:"-"|add:bar }}',
+            "baz": "'qux'",
+            "foo": 'foo|startswith:"b"',
+            "bar": 'foo|add:"-"|add:bar',
         },
         evaluate=True,
     )
@@ -242,7 +242,7 @@ def test_update_state_action_evaluate(run):
     directive = action.run(obj=None, run=run, config=state)
     assert directive == FlowDirective.CONTINUE
     assert run.state["baz"] == "qux"
-    assert run.state["foo"] == "True"
+    assert run.state["foo"] is True
     assert run.state["bar"] == "bar-boo"
 
 

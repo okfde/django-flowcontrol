@@ -13,7 +13,6 @@ from ..utils import (
     evaluate_expression,
     evaluate_if,
     readable_timedelta,
-    render_string,
     validate_template_condition,
 )
 from .core import ActionBase, Flow, Trigger
@@ -214,7 +213,9 @@ class State(ActionBase):
         """
         if self.evaluate:
             return {
-                key: render_string(value, context) if isinstance(value, str) else value
+                key: evaluate_expression(value, context)
+                if isinstance(value, str)
+                else value
                 for key, value in self.state.items()
             }
         return self.state.copy()
