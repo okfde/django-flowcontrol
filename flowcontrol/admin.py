@@ -145,6 +145,8 @@ class FlowAdmin(admin.ModelAdmin):
                 max_concurrent=flow.max_concurrent,
                 max_per_object=flow.max_per_object,
                 max_concurrent_per_object=flow.max_concurrent_per_object,
+                content_type=flow.content_type,
+                condition=flow.condition,
             )
             for action in flow.get_root_actions():
                 action_class = action.get_action_class()

@@ -7,13 +7,16 @@ import pytest
 
 from flowcontrol.actions import SetStateAction
 from flowcontrol.models import Flow, FlowRun, Trigger
-from flowcontrol.registry import action_registry, register_trigger, trigger_registry
+from flowcontrol.registry import action_registry
 from flowcontrol.utils import ActionNode, make_action_tree
 
 
 @pytest.fixture
 def flow(db):
-    return Flow.objects.create(name="Test Flow", active_at=timezone.now())
+    ct = ContentType.objects.get_by_natural_key("auth", "user")
+    return Flow.objects.create(
+        name="Test Flow", active_at=timezone.now(), content_type=ct, condition="1 == 1"
+    )
 
 
 @pytest.fixture

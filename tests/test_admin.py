@@ -401,6 +401,9 @@ def test_duplicate_flow(admin_user, client, flow_with_all_actions):
 
     new_flow = Flow.objects.get(name=f"{flow.name} (copy)")
     assert new_flow is not None
+    assert new_flow.description == flow.description
+    assert new_flow.content_type == flow.content_type
+    assert new_flow.condition == flow.condition
     assert new_flow.actions.count() == flow.actions.count()
     assert new_flow.actions.first().action == flow.actions.first().action
 
