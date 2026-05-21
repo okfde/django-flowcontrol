@@ -1,4 +1,4 @@
-from datetime import datetime, time, timedelta
+from datetime import time, timedelta
 
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -225,6 +225,25 @@ def test_update_state_action(run):
     assert directive == FlowDirective.CONTINUE
     assert run.state["baz"] == "qux"
     assert run.state["foo"] == "bar"
+
+
+def test_update_state_action_evaluate(run):
+    run.state = {"foo": "bar", "bar": "boo"}
+    state = State(
+        state={
+            "baz": "qux",
+            "foo": '{{ foo|startswith:"b" }}',
+            "bar": '{{ foo|add:"-"|add:bar }}',
+        },
+        evaluate=True,
+    )
+    action = UpdateStateAction()
+    action._set_context(run.state.copy())
+    directive = action.run(obj=None, run=run, config=state)
+    assert directive == FlowDirective.CONTINUE
+    assert run.state["baz"] == "qux"
+    assert run.state["foo"] == "True"
+    assert run.state["bar"] == "bar-boo"
 
 
 def test_empty_for_loop_action(run):

@@ -2,7 +2,7 @@ from datetime import timedelta
 from typing import Any, NamedTuple
 
 from django.core.exceptions import ValidationError
-from django.template import Context
+from django.template import Context, Template
 from django.template.base import Parser
 from django.template.defaulttags import TemplateIfParser
 from django.template.engine import Engine
@@ -23,6 +23,12 @@ def make_expression(expression: str) -> Any:
     engine = get_engine()
     parser = Parser("", engine.template_libraries, engine.template_builtins)
     return TemplateIfParser(parser, list(smart_split(expression))).parse()
+
+
+def render_string(template: str, context: dict) -> str:
+    engine = get_engine()
+    template = Template(template, engine=engine)
+    return template.render(Context(context))
 
 
 def get_engine():
