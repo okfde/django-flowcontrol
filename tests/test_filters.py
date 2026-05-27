@@ -1,5 +1,6 @@
 import pytest
 
+from flowcontrol.templatetags.flowcontrol import get_flowruns
 from flowcontrol.utils import evaluate_if
 
 
@@ -47,3 +48,8 @@ def test_add_more_filters(settings, fake_filter_module):
 
     settings.FLOWCONTROL_TEMPLATE_FILTERS = [fake_filter_module]
     assert evaluate_if("obj.slug|foobar == 'foobar'", {"obj": {"slug": "test"}}) is True
+
+
+def test_get_flowruns_filter(user, flowrun):
+    runs = list(get_flowruns(user))
+    assert runs == [flowrun]
