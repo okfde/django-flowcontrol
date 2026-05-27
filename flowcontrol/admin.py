@@ -287,13 +287,28 @@ class FlowActionSubAdmin(TreeAdmin):
             return mark_safe("<em>-</em>")
         return str(config)
 
+    def _run_admin_url(self, obj, status):
+        return "{}?status={}&flow={}".format(
+            reverse("admin:flowcontrol_flowrun_changelist"),
+            status,
+            obj.flow_id,
+        )
+
     @admin.display(description=_("Runs waiting on this action"))
     def waiting_count(self, obj):
-        return obj.waiting_count
+        return format_html(
+            '<a href="{}">{}</a>',
+            self._run_admin_url(obj, FlowRun.Status.WAITING),
+            obj.waiting_count,
+        )
 
     @admin.display(description=_("Runs completed on this action"))
     def done_count(self, obj):
-        return obj.done_count
+        return format_html(
+            '<a href="{}">{}</a>',
+            self._run_admin_url(obj, FlowRun.Status.DONE),
+            obj.done_count,
+        )
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
