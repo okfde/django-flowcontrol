@@ -54,7 +54,7 @@ class FlowAdmin(admin.ModelAdmin):
         qs = super().get_queryset(request)
         qs = qs.annotate(
             active_count=Count(
-                "runs", distinct=True, filter=Q(runs__status=FlowRun.Status.WAITING)
+                "runs", distinct=True, filter=~Q(runs__status=FlowRun.Status.DONE)
             ),
             total_count=Count("runs", distinct=True),
         )
