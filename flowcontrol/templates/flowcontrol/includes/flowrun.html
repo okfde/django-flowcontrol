@@ -1,0 +1,43 @@
+{% load i18n %}
+<h3>
+    {% url "admin:flowcontrol_flow_change" object_id=object.pk as flow_admin_url %}
+    <a href="{{ flow_admin_url }}">
+        {{ object.flow.name }}
+    </a>
+</h3>
+<dl>
+    <dt>{% translate "Created at" %}</dt>
+    <dd>{{ object.created_at|date:"SHORT_DATETIME_FORMAT" }}</dd>
+    {% if object.trigger %}
+        <dt>{% translate "Started through trigger" %}</dt>
+        <dd>{{ object.trigger }}</dd>
+    {% endif %}
+    {% if object.parent_run %}
+        <dt>{% translate "Parent run" %}</dt>
+        <dd>{{ object.parent_run }}</dd>
+    {% endif %}
+    <dt>{% translate "Status" %}</dt>
+    <dd>{{ object.get_status_display }}</dd>
+    {% if object.done_at %}
+        <dt>{% translate "Done at" %}</dt>
+        <dd>{{ object.done_at|date:"SHORT_DATETIME_FORMAT" }}</dd>
+    {% endif %}
+    <dt>{% translate "Outcome" %}</dt>
+    <dd>{{ object.get_outcome_display }}</dd>
+    {% if object.continue_after %}
+        <dt>{% translate "Continue after" %}</dt>
+        <dd>{{ object.continue_after|date:"SHORT_DATETIME_FORMAT" }}</dd>
+    {% endif %}
+    {% if object.waiting_trigger %}
+        <dt>{% translate "Waiting on trigger" %}</dt>
+        <dd>{{ object.waiting_trigger }}</dd>
+    {% endif %}
+    {% if object.action %}
+        <dt>{% translate "Currently at" %}</dt>
+        <dd>{{ object.action }}</dd>
+    {% endif %}
+</dl>
+{% url "admin:flowcontrol_flowrun_change" pk=object.pk as flowrun_admin_url %}
+{% if flowrun_admin_url %}
+    <p><a href="{{ flowrun_admin_url }}">{% translate "See in admin" %}</a></p>
+{% endif %}
