@@ -37,7 +37,7 @@
         <dd>{{ object.action }}</dd>
     {% endif %}
 </dl>
-{% url "admin:flowcontrol_flowrun_change" pk=object.pk as flowrun_admin_url %}
+{% url "admin:flowcontrol_flowrun_change" object.pk as flowrun_admin_url %}
 {% if flowrun_admin_url %}
     <p><a href="{{ flowrun_admin_url }}">{% translate "See in admin" %}</a></p>
 {% endif %}
