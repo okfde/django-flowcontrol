@@ -23,7 +23,7 @@ from flowcontrol.widgets import ConditionExpressionWidget
 from .engine import execute_flowrun
 from .models import Flow, FlowAction, FlowRun, Trigger
 from .registry import action_registry
-from .utils import duplicate_action
+from .utils import ForeignKeyFilter, duplicate_action
 
 
 class FlowAdminForm(forms.ModelForm):
@@ -288,10 +288,8 @@ class FlowActionSubAdmin(TreeAdmin):
         return str(config)
 
     def _run_admin_url(self, obj, status):
-        return "{}?status={}&flow={}".format(
-            reverse("admin:flowcontrol_flowrun_changelist"),
-            status,
-            obj.flow_id,
+        return "{}?status={}&flow={}&action={}".format(
+            reverse("admin:flowcontrol_flowrun_changelist"), status, obj.flow_id, obj.pk
         )
 
     @admin.display(description=_("Runs waiting on this action"))
@@ -454,10 +452,16 @@ class FlowRunAdmin(admin.ModelAdmin):
         "status",
         "outcome",
         "created_at",
+        "action",
         "continue_after",
         "done_at",
     )
-    list_filter = ("status", "outcome", "flow")
+    list_filter = (
+        "status",
+        "outcome",
+        ("flow", ForeignKeyFilter),
+        ("action", ForeignKeyFilter),
+    )
     search_fields = ("flow__name",)
     readonly_fields = (
         "created_at",
@@ -476,6 +480,12 @@ class FlowRunAdmin(admin.ModelAdmin):
     )
 
     actions = ["execute_flowrun"]
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.select_related("flow").prefetch_related(
+            "content_type", "action"
+        )
 
     @admin.display(description=_("Content Object"))
     def content_object(self, obj):
@@ -533,7 +543,7 @@ class TriggerAdmin(admin.ModelAdmin):
         "is_active",
         "active_at",
     )
-    list_filter = ("flow",)
+    list_filter = (("flow", ForeignKeyFilter),)
     search_fields = ("trigger", "flow__name")
     raw_id_fields = ("flow",)
 

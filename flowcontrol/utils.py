@@ -1,6 +1,7 @@
 from datetime import timedelta
 from typing import Any, NamedTuple
 
+from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.template import Context
 from django.template.base import Parser
@@ -114,3 +115,33 @@ def duplicate_action(action, target_parent=None, flow=None):
     for child in action.get_children():
         duplicate_action(child, target_parent=new_action, flow=flow)
     return new_action
+
+
+class ForeignKeyFilter(admin.FieldListFilter):
+    template = "flowcontrol/admin/fk_filter.html"
+
+    def __init__(self, field, request, params, model, model_admin, field_path):
+        super().__init__(field, request, params, model, model_admin, field_path)
+        self.lookup_val = request.GET.get(self.field_path, None)
+        self.create_used_parameters()
+
+    def create_used_parameters(self):
+        param = self.field_path
+        val = self.used_parameters.pop(param, None)
+        if val is not None:
+            self.used_parameters["{}__in".format(param)] = [val]
+
+    def expected_parameters(self):
+        return [self.field_path]
+
+    def choices(self, changelist):
+        params = changelist.params.copy()
+        params.pop(self.field_path, None)
+
+        return [
+            {
+                "value": self.lookup_val,
+                "field_path": self.field_path,
+                "params": params,
+            }
+        ]
