@@ -497,3 +497,32 @@ def test_trigger_model_validation(trigger, temp_registry):
     trigger.flow = None
     with pytest.raises(ValidationError):
         trigger.full_clean()
+
+
+def test_trigger_model_validation_reset_to_action(
+    trigger, temp_registry, flow_action, other_flow
+):
+    from flowcontrol.registry import register_trigger
+
+    register_trigger(trigger.trigger)
+    trigger.flow = None
+    trigger.create_flow = False
+    trigger.reset_to_action = flow_action
+    trigger.save()
+
+    with pytest.raises(ValidationError):
+        trigger.full_clean()
+
+    trigger.flow = other_flow
+    trigger.create_flow = True
+    trigger.reset_to_action = flow_action
+    trigger.save()
+
+    with pytest.raises(ValidationError):
+        trigger.full_clean()
+
+    trigger.flow = flow_action.flow
+    trigger.create_flow = True
+    trigger.reset_to_action = flow_action
+    trigger.save()
+    trigger.full_clean()

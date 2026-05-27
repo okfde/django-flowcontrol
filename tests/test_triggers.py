@@ -4,7 +4,7 @@ import pytest
 
 from flowcontrol.actions import WaitForTriggerAction
 from flowcontrol.engine import create_flowrun, start_flowrun, trigger_flows
-from flowcontrol.models.core import Trigger
+from flowcontrol.models.core import FlowRun, Trigger
 from flowcontrol.utils import ActionNode, make_action_tree
 
 
@@ -115,3 +115,49 @@ def test_wait_for_trigger_object_immediate(flow, wait_trigger, user, admin_user)
     assert run.waiting_trigger is None
     assert run.continue_after is None
     assert run.status == run.Status.DONE
+
+
+@pytest.mark.django_db
+def test_trigger_reset_to_action(trigger, flow, flow_action):
+    trigger.reset_to_action = flow_action
+    trigger.save()
+    old_run = create_flowrun(flow)
+    assert old_run is not None
+    assert old_run.action is None
+    assert old_run.status == FlowRun.Status.PENDING
+    assert not old_run.repeat_action
+
+    runs = trigger_flows(trigger.trigger)
+    assert len(runs) == 1
+    run = runs[0]
+    assert old_run == run
+    assert run.action == flow_action
+    assert run.status == FlowRun.Status.WAITING
+    assert run.repeat_action
+
+
+@pytest.mark.django_db
+def test_trigger_reset_to_action_already_done(trigger, flow, flow_action):
+    trigger.reset_to_action = flow_action
+    trigger.save()
+
+    old_run = create_flowrun(flow)
+    old_run.status = FlowRun.Status.DONE
+    old_run.outcome = FlowRun.Outcome.COMPLETE
+    old_run.save()
+
+    runs = trigger_flows(trigger.trigger)
+    assert len(runs) == 0
+
+
+@pytest.mark.django_db
+def test_trigger_reset_to_action_still_running(trigger, flow, flow_action):
+    trigger.reset_to_action = flow_action
+    trigger.save()
+
+    old_run = create_flowrun(flow)
+    old_run.status = FlowRun.Status.RUNNING
+    old_run.save()
+
+    with pytest.raises(NotImplementedError):
+        trigger_flows(trigger.trigger)

@@ -11,6 +11,7 @@ from flowcontrol.engine import (
     create_flowrun,
     discard_flowrun,
     error_flowrun,
+    reset_flowrun,
     start_flowrun,
 )
 from flowcontrol.models import FlowRun
@@ -109,3 +110,22 @@ def test_continue_flowrun(flow, user):
     flowrun.refresh_from_db()
     assert flowrun.status == FlowRun.Status.DONE
     assert flowrun.outcome == FlowRun.Outcome.COMPLETE
+
+
+@pytest.mark.django_db
+def test_reset_flowrun(flowrun):
+    reset_flowrun(flowrun)
+    assert flowrun.action is None
+    assert flowrun.status == FlowRun.Status.PENDING
+    assert not flowrun.repeat_action
+    assert flowrun.done_at is None
+
+
+@pytest.mark.django_db
+def test_reset_flowrun_with_action(flowrun, flow_action):
+    reset_flowrun(flowrun, action=flow_action, state={"foo": "bar"})
+    assert flowrun.action == flow_action
+    assert flowrun.status == FlowRun.Status.WAITING
+    assert flowrun.repeat_action
+    assert flowrun.done_at is None
+    assert flowrun.state == {"foo": "bar"}

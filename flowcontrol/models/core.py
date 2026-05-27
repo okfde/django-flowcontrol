@@ -420,6 +420,14 @@ class Trigger(models.Model):
         verbose_name=_("Create flow run on trigger"),
         help_text=_("Whether to create a new flow run when this trigger is received."),
     )
+    reset_to_action = models.ForeignKey(
+        FlowAction,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("Reset to flow action"),
+    )
 
     condition = models.TextField(
         blank=True,
@@ -471,6 +479,17 @@ class Trigger(models.Model):
             raise ValidationError(
                 _("A flow is required when creating a flow on trigger.")
             )
+        if self.reset_to_action:
+            if not self.flow_id:
+                raise ValidationError(
+                    _("A flow is required when resetting to an action.")
+                )
+            if self.flow_id != self.reset_to_action.flow_id:
+                raise ValidationError(
+                    _(
+                        "The flow of the reset to action needs to be the same as the flow on the trigger."
+                    )
+                )
 
     def get_trigger(self) -> Optional[type[RegisteredTrigger]]:
         return trigger_registry.get_trigger(self.trigger)

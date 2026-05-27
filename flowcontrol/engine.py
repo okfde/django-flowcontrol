@@ -114,6 +114,10 @@ def create_flowrun(
     if not flow.is_active():
         raise ValueError("Cannot start a flow run for an inactive flow")
 
+    same_active_flows = FlowRun.objects.filter(flow=flow).exclude(
+        status=FlowRun.Status.DONE
+    )
+
     check_aggs = {}
     if flow.max_concurrent > 0:
         check_aggs["concurrent_count"] = models.Count(
@@ -126,6 +130,10 @@ def create_flowrun(
             return
         object_id = obj.pk
 
+        same_active_flows = same_active_flows.filter(
+            content_type=content_type, object_id=object_id
+        )
+
         if flow.max_per_object > 0:
             check_aggs["object_count"] = models.Count(
                 "id", filter=models.Q(content_type=content_type, object_id=object_id)
@@ -136,6 +144,18 @@ def create_flowrun(
                 filter=models.Q(content_type=content_type, object_id=object_id)
                 & ~models.Q(status=FlowRun.Status.DONE),
             )
+
+    if trigger and trigger.reset_to_action:
+        # Find flow to restart
+        active_run = same_active_flows.first()
+        if active_run:
+            return reset_flowrun(
+                active_run, action=trigger.reset_to_action, trigger=trigger, state=state
+            )
+        else:
+            # Don't create a flow if none to restart
+            return
+
     if check_aggs:
         run_counts = FlowRun.objects.filter(flow=flow).aggregate(**check_aggs)
         count = run_counts.get("concurrent_count")
@@ -158,6 +178,34 @@ def create_flowrun(
     )
 
     return run
+
+
+def reset_flowrun(
+    flowrun: FlowRun,
+    action: Optional[FlowAction] = None,
+    trigger: Optional[Trigger] = None,
+    state: Optional[dict] = None,
+) -> FlowRun:
+    # FIXME: What to do with runningn flowruns?
+    if flowrun.status == FlowRun.Status.RUNNING:
+        raise NotImplementedError("Cannot restart flowrun that is currently executing")
+
+    if action:
+        flowrun.status = FlowRun.Status.WAITING
+        flowrun.continue_after = timezone.now()
+        flowrun.repeat_action = True
+    else:
+        flowrun.status = FlowRun.Status.PENDING
+        flowrun.continue_after = None
+        flowrun.repeat_action = False
+    flowrun.action = action
+    flowrun.trigger = trigger
+    flowrun.outcome = ""
+    flowrun.done_at = None
+    if state is not None:
+        flowrun.state = state
+    flowrun.save()
+    return flowrun
 
 
 def start_flowrun(
