@@ -1,12 +1,17 @@
+from collections.abc import Callable
 from datetime import timedelta
 from typing import Any, NamedTuple
 
 from django.contrib import admin
+from django.contrib.admin.sites import AdminSite
+from django.contrib.admin.views.main import ChangeList
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.template import Context
 from django.template.base import Parser
 from django.template.defaulttags import TemplateIfParser
 from django.template.engine import Engine
+from django.test import RequestFactory
 from django.utils import timezone
 from django.utils.text import smart_split
 from django.utils.timesince import timesince
@@ -145,3 +150,36 @@ class ForeignKeyFilter(admin.FieldListFilter):
                 "params": params,
             }
         ]
+
+
+def get_admin_filtered_queryset(model_admin_class, model, filter_params=None):
+    request_factory = RequestFactory()
+    request = request_factory.get("/", data=filter_params)
+    user_model = get_user_model()
+    # Create a fake superuser for the request
+    # so all permission checks on allowed filters in admin pass
+    user = user_model()
+    user.is_superuser = True
+    user.is_staff = True
+    request.user = user
+
+    model_admin = model_admin_class(model, admin_site=AdminSite())
+    cl = ChangeList(
+        request,
+        model_admin.model,
+        model_admin.get_list_display(request),
+        model_admin.get_list_display_links(
+            request, model_admin.get_list_display(request)
+        ),
+        model_admin.get_list_filter(request),
+        model_admin.date_hierarchy,
+        model_admin.get_search_fields(request),
+        model_admin.get_list_select_related(request),
+        model_admin.list_per_page,
+        model_admin.list_max_show_all,
+        model_admin.list_editable,
+        model_admin,
+        model_admin.get_sortable_by(request),
+        model_admin.search_help_text,
+    )
+    return cl.get_queryset(request)

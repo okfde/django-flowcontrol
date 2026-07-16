@@ -479,7 +479,12 @@ class FlowRunAdmin(admin.ModelAdmin):
         "content_type",
     )
 
-    actions = ["execute_flowrun"]
+    actions = [
+        "execute_flowrun",
+        "reset",
+        "restart_with_current_action",
+        "restart_with_next_action",
+    ]
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
@@ -523,6 +528,45 @@ class FlowRunAdmin(admin.ModelAdmin):
         """
         for run in queryset:
             execute_flowrun(run)
+
+    @admin.action(description=_("Reset selected flow runs"))
+    def reset(self, request, queryset):
+        from .engine import reset_flowrun
+        from .tasks import reset_flowruns_task
+
+        select_across = request.POST.get("select_across") == "1"
+
+        if select_across:
+            reset_flowruns_task.delay(request.GET.dict())
+        else:
+            for run in queryset:
+                reset_flowrun(run)
+
+    @admin.action(description=_("Restart with current action"))
+    def restart_with_current_action(self, request, queryset):
+        from .engine import restart_flowrun_with_current_action
+        from .tasks import restart_flowruns_with_current_action_task
+
+        select_across = request.POST.get("select_across") == "1"
+
+        if select_across:
+            restart_flowruns_with_current_action_task.delay(request.GET.dict())
+        else:
+            for run in queryset:
+                restart_flowrun_with_current_action(run)
+
+    @admin.action(description=_("Restart with current action"))
+    def restart_with_next_action(self, request, queryset):
+        from .engine import restart_flowrun_with_next_action
+        from .tasks import restart_flowruns_with_next_action_task
+
+        select_across = request.POST.get("select_across") == "1"
+
+        if select_across:
+            restart_flowruns_with_next_action_task.delay(request.GET.dict())
+        else:
+            for run in queryset:
+                restart_flowrun_with_next_action(run)
 
 
 class TriggerAdminForm(forms.ModelForm):

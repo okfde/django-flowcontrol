@@ -1,5 +1,6 @@
 import logging
 from collections import Counter
+from collections.abc import Callable
 from typing import Optional
 
 from django.contrib.contenttypes.models import ContentType
@@ -10,6 +11,7 @@ from flowcontrol.utils import evaluate_if
 
 from .base import FlowDirective
 from .models import Flow, FlowAction, FlowRun, Trigger
+from .utils import get_admin_filtered_queryset
 
 logger = logging.getLogger(__name__)
 
@@ -183,17 +185,18 @@ def create_flowrun(
 def reset_flowrun(
     flowrun: FlowRun,
     action: Optional[FlowAction] = None,
+    repeat_action: bool = True,
     trigger: Optional[Trigger] = None,
     state: Optional[dict] = None,
 ) -> FlowRun:
-    # FIXME: What to do with runningn flowruns?
+    # FIXME: What to do with running flowruns?
     if flowrun.status == FlowRun.Status.RUNNING:
         raise NotImplementedError("Cannot restart flowrun that is currently executing")
 
     if action:
         flowrun.status = FlowRun.Status.WAITING
         flowrun.continue_after = timezone.now()
-        flowrun.repeat_action = True
+        flowrun.repeat_action = repeat_action
     else:
         flowrun.status = FlowRun.Status.PENDING
         flowrun.continue_after = None
@@ -526,3 +529,34 @@ def check_condition(
     )
 
     return evaluate_if(condition, context)
+
+
+def restart_flowrun_with_current_action(flowrun: FlowRun):
+    if flowrun.status != flowrun.Status.DONE:
+        raise ValueError(
+            f"Cannot restart flowrun {flowrun.id} because it is not in DONE status."
+        )
+    reset_flowrun(flowrun, flowrun.action, repeat_action=True)
+
+
+def restart_flowrun_with_next_action(flowrun: FlowRun):
+    if flowrun.status != flowrun.Status.DONE:
+        raise ValueError(
+            f"Cannot restart flowrun {flowrun.id} because it is not in DONE status."
+        )
+    reset_flowrun(flowrun, flowrun.action, repeat_action=False)
+
+
+def execute_on_filtered_flowrun_queryset(
+    func: Callable[[FlowRun], None], filter_params: Optional[dict[str, str]] = None
+):
+    from .admin import FlowRunAdmin
+    from .models import FlowRun
+
+    queryset = get_admin_filtered_queryset(
+        model_admin_class=FlowRunAdmin,
+        model=FlowRun,
+        filter_params=filter_params,
+    )
+    for flowrun in queryset:
+        func(flowrun)
