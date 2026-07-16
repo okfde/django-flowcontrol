@@ -4,3 +4,4 @@ coverage[toml]
 django>=4.2
 pytest
 pytest-django
+celery
