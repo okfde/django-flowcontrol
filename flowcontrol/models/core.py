@@ -233,9 +233,13 @@ class FlowRunManager(models.Manager):
             | Q(status=FlowRun.Status.WAITING, continue_after__lte=timezone.now())
         )
 
+    def get_enqueued(self):
+        return self.get_queryset().filter(status=FlowRun.Status.ENQUEUED)
+
 
 class Status(models.TextChoices):
     PENDING = "pending", _("Pending")
+    ENQUEUED = "enqueued", _("Enqueued")
     RUNNING = "running", _("Running")
     WAITING = "waiting", _("Waiting")
     PAUSED = "paused", _("Paused")
@@ -371,6 +375,11 @@ class FlowRun(models.Model):
         self.log += message
         if save:
             self.save(update_fields=["log"])
+
+    def enqueue(self):
+        assert self.status in (Status.PENDING, Status.WAITING)
+        self.status = Status.ENQUEUED
+        self.save(update_fields=["status"])
 
 
 def get_trigger_choices():
