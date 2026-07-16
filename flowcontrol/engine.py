@@ -339,6 +339,10 @@ def execute_flowrun(
         The updated FlowRun instance or None if the run was not executed due to its status.
     """
 
+    if not run.flow.is_active():
+        logger.warning(f"Flow {run.flow} is not active and flow runs cannot execute.")
+        return
+
     if run.status not in (FlowRun.Status.PENDING, FlowRun.Status.WAITING):
         logger.warning(
             f"Flow run {run.id} is not in a valid state to execute: {run.status}"

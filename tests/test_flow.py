@@ -27,6 +27,14 @@ from flowcontrol.utils import ActionNode, make_action_tree
 
 
 @pytest.mark.django_db
+def test_execute_not_active(flowrun):
+    flow = flowrun.flow
+    flow.active_at = None
+    execute_flowrun(flowrun)
+    assert flowrun.status == FlowRun.Status.PENDING
+
+
+@pytest.mark.django_db
 def test_forloop_flow(flow, user):
     make_action_tree(
         flow,
