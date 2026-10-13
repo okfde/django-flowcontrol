@@ -555,7 +555,7 @@ class FlowRunAdmin(admin.ModelAdmin):
             for run in queryset:
                 restart_flowrun_with_current_action(run)
 
-    @admin.action(description=_("Restart with current action"))
+    @admin.action(description=_("Restart with next action"))
     def restart_with_next_action(self, request, queryset):
         from .engine import restart_flowrun_with_next_action
         from .tasks import restart_flowruns_with_next_action_task
