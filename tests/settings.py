@@ -51,6 +51,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
 ]
 
+MAILERS = {"default": {}}
+
 ROOT_URLCONF = "tests.urls"
 
 USE_TZ = True
