@@ -1,5 +1,7 @@
 from unittest.mock import Mock
 
+import pytest
+
 from flowcontrol.models import FlowRun
 from flowcontrol.tasks import (
     continue_flowruns_task,
@@ -8,6 +10,7 @@ from flowcontrol.tasks import (
 )
 
 
+@pytest.mark.django_db(transaction=True)
 def test_enqueue_flowruns_task(flowrun, monkeypatch):
     mock = Mock()
     monkeypatch.setattr(execute_flowrun_task, "delay", mock)

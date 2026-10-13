@@ -1,3 +1,5 @@
+from functools import partial
+
 from django.db import transaction
 from django.db.models import QuerySet
 
@@ -15,13 +17,14 @@ def continue_flowruns_task():
 def enqueue_flowruns_task():
     from .models import FlowRun
 
-    runnable: QuerySet[FlowRun] = FlowRun.objects.get_runnable()
-
-    for runnable_run in runnable:
-        with transaction.atomic():
+    runnable: QuerySet[FlowRun] = FlowRun.objects.get_runnable().select_for_update()
+    with transaction.atomic():
+        for runnable_run in runnable:
             status = runnable_run.status
             runnable_run.enqueue()
-            execute_flowrun_task.delay(runnable_run.id, status)
+            transaction.on_commit(
+                partial(execute_flowrun_task.delay, runnable_run.id, status)
+            )
 
 
 @shared_task
